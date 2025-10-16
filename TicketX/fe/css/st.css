@@ -1,0 +1,85 @@
+﻿body {
+    font-size:0.78em;
+}
+.centerpage {
+    margin: 0 auto; /* Added */
+    float: none; /* Added */
+    margin-bottom: 10px; /* Added */
+}
+
+
+.bg-yesil {
+    background-color:#64E987;
+}
+.bg-pembe {
+    background-color: #FF99A9;
+}
+
+.bg-sari {
+    background-color: #DFFF7C;
+}
+
+
+.minifoto{
+    height:30px;
+    width:auto;
+
+
+}
+
+
+.mainfooter {
+    bottom: 0px;
+    position: fixed;
+    height: 100px;
+    background: rgba(142, 60, 119, 0.4);
+    width: 100%;
+    left: 0px !important;
+    font-family: 'Comfortaa', cursive;
+    color: white;
+    text-align: center;
+    padding-top: 12px;
+}
+.mainfooter > h4{
+
+
+    color:aliceblue;
+
+}
+
+#myVideo {
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    min-width: 100%;
+    min-height: 100%;
+    -webkit-filter: blur(3px);
+    -moz-filter: blur(3px);
+    -o-filter: blur(3px);
+    -ms-filter: blur(3px);
+    filter: blur(3px);
+
+}
+
+.card-m{
+    margin-top:20px;
+    padding:15px;
+    border:1px solid rgba(1,1,1,1);
+    background:rgba(1,1,1,0.3);
+    border-radius:10px;
+    color:white;
+
+}
+
+.konserbaslik {
+    text-align:center;
+    font-family: 'Caveat', cursive;
+    font-size:3em;
+    color:white;
+}
+
+.afis{
+    width:600px;
+    height:auto;
+
+}

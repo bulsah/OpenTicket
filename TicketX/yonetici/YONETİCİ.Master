@@ -1,0 +1,47 @@
+﻿<%@ Master Language="C#" AutoEventWireup="true" CodeBehind="YONETİCİ.master.cs" Inherits="TicketX.yonetici.YONETİCİ" %>
+
+<!DOCTYPE html>
+
+<html>
+<head runat="server">
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+    <title></title>
+    <asp:ContentPlaceHolder ID="head" runat="server">
+    </asp:ContentPlaceHolder>
+</head>
+<body>
+    <link href="../fe/css/bootstrap.css" rel="stylesheet" />
+    <link href="../fe/css/st.css" rel="stylesheet" />
+    <link href="../fe/fa/css/all.css" rel="stylesheet" />
+    <form id="form1" runat="server">
+<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+  <a class="navbar-brand" href="#">TicketX</a>
+  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+    <span class="navbar-toggler-icon"></span>
+  </button>
+
+  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+    <ul class="navbar-nav mr-auto">
+      <li class="nav-item active">
+        <a class="nav-link" href="default.aspx">Ana Sayfa </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" href="kullanici.aspx">Kullanıcılar</a>
+      </li>
+     
+      <li class="nav-item">
+        <a class="nav-link" href="etkinlik.aspx">Etkinlikler</a>
+      </li>
+    </ul>
+
+  </div>
+</nav>
+        <div class="container mt-3">
+            <asp:ContentPlaceHolder ID="ContentPlaceHolder1" runat="server">
+            </asp:ContentPlaceHolder>
+        </div>
+    </form>
+    <script src="../fe/js/jquery.js"></script>
+    <script src="../fe/js/bootstrap.js"></script>
+</body>
+</html>

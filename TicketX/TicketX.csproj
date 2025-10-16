@@ -1,0 +1,273 @@
+﻿<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <Import Project="..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props" Condition="Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" />
+  <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>
+    </ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{33061CD5-07A8-43BC-89A6-E87B1B551E5C}</ProjectGuid>
+    <ProjectTypeGuids>{349c5851-65df-11da-9384-00065b846f21};{fae04ec0-301f-11d3-bf4b-00c04f79efbc}</ProjectTypeGuids>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>TicketX</RootNamespace>
+    <AssemblyName>TicketX</AssemblyName>
+    <TargetFrameworkVersion>v4.7.2</TargetFrameworkVersion>
+    <UseIISExpress>true</UseIISExpress>
+    <Use64BitIISExpress />
+    <IISExpressSSLPort>44334</IISExpressSSLPort>
+    <IISExpressAnonymousAuthentication />
+    <IISExpressWindowsAuthentication />
+    <IISExpressUseClassicPipelineMode />
+    <UseGlobalApplicationHostFile />
+    <NuGetPackageImportStamp>
+    </NuGetPackageImportStamp>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <OutputPath>bin\</OutputPath>
+    <DefineConstants>TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="PresentationCore" />
+    <Reference Include="PresentationFramework" />
+    <Reference Include="QRCoder, Version=1.4.1.0, Culture=neutral, processorArchitecture=MSIL">
+      <HintPath>..\packages\QRCoder.1.4.1\lib\net40\QRCoder.dll</HintPath>
+    </Reference>
+    <Reference Include="System.Web.DynamicData" />
+    <Reference Include="System.Web.Entity" />
+    <Reference Include="System.Web.ApplicationServices" />
+    <Reference Include="System.ComponentModel.DataAnnotations" />
+    <Reference Include="System" />
+    <Reference Include="System.Data" />
+    <Reference Include="System.Core" />
+    <Reference Include="System.Data.DataSetExtensions" />
+    <Reference Include="System.Web.Extensions" />
+    <Reference Include="System.Xml.Linq" />
+    <Reference Include="System.Drawing" />
+    <Reference Include="System.Web" />
+    <Reference Include="System.Xml" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Web.Services" />
+    <Reference Include="System.EnterpriseServices" />
+    <Reference Include="WindowsBase" />
+  </ItemGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.CodeDom.Providers.DotNetCompilerPlatform">
+      <HintPath>..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\lib\net45\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.dll</HintPath>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="afisler\3495eab0123a8216caf5f01f776220353ed9a944.jpeg" />
+    <Content Include="biletal.aspx" />
+    <Content Include="default.aspx" />
+    <Content Include="fe\css\blsh.mp4" />
+    <Content Include="fe\css\bootstrap-grid.css" />
+    <Content Include="fe\css\bootstrap-grid.min.css" />
+    <Content Include="fe\css\bootstrap-reboot.css" />
+    <Content Include="fe\css\bootstrap-reboot.min.css" />
+    <Content Include="fe\css\bootstrap.css" />
+    <Content Include="fe\css\bootstrap.min.css" />
+    <Content Include="fe\css\st.css" />
+    <Content Include="fe\fa\css\all.css" />
+    <Content Include="fe\fa\css\all.min.css" />
+    <Content Include="fe\fa\css\brands.css" />
+    <Content Include="fe\fa\css\brands.min.css" />
+    <Content Include="fe\fa\css\duotone.css" />
+    <Content Include="fe\fa\css\duotone.min.css" />
+    <Content Include="fe\fa\css\fontawesome.css" />
+    <Content Include="fe\fa\css\fontawesome.min.css" />
+    <Content Include="fe\fa\css\light.css" />
+    <Content Include="fe\fa\css\light.min.css" />
+    <Content Include="fe\fa\css\regular.css" />
+    <Content Include="fe\fa\css\regular.min.css" />
+    <Content Include="fe\fa\css\solid.css" />
+    <Content Include="fe\fa\css\solid.min.css" />
+    <Content Include="fe\fa\css\svg-with-js.css" />
+    <Content Include="fe\fa\css\svg-with-js.min.css" />
+    <Content Include="fe\fa\css\v4-shims.css" />
+    <Content Include="fe\fa\css\v4-shims.min.css" />
+    <Content Include="fe\fa\js\all.js" />
+    <Content Include="fe\fa\js\all.min.js" />
+    <Content Include="fe\fa\js\brands.js" />
+    <Content Include="fe\fa\js\brands.min.js" />
+    <Content Include="fe\fa\js\conflict-detection.js" />
+    <Content Include="fe\fa\js\conflict-detection.min.js" />
+    <Content Include="fe\fa\js\duotone.js" />
+    <Content Include="fe\fa\js\duotone.min.js" />
+    <Content Include="fe\fa\js\fontawesome.js" />
+    <Content Include="fe\fa\js\fontawesome.min.js" />
+    <Content Include="fe\fa\js\light.js" />
+    <Content Include="fe\fa\js\light.min.js" />
+    <Content Include="fe\fa\js\regular.js" />
+    <Content Include="fe\fa\js\regular.min.js" />
+    <Content Include="fe\fa\js\solid.js" />
+    <Content Include="fe\fa\js\solid.min.js" />
+    <Content Include="fe\fa\js\v4-shims.js" />
+    <Content Include="fe\fa\js\v4-shims.min.js" />
+    <Content Include="fe\fa\webfonts\fa-brands-400.svg" />
+    <Content Include="fe\fa\webfonts\fa-duotone-900.svg" />
+    <Content Include="fe\fa\webfonts\fa-light-300.svg" />
+    <Content Include="fe\fa\webfonts\fa-regular-400.svg" />
+    <Content Include="fe\fa\webfonts\fa-solid-900.svg" />
+    <Content Include="fe\js\bootstrap.bundle.js" />
+    <Content Include="fe\js\bootstrap.bundle.min.js" />
+    <Content Include="fe\js\bootstrap.js" />
+    <Content Include="fe\js\bootstrap.min.js" />
+    <Content Include="fe\js\jquery.js" />
+    <Content Include="Web.config" />
+    <Content Include="yonetici\etkinlik.aspx" />
+    <Content Include="yonetici\kullanici.aspx" />
+    <Content Include="yonetici\login.aspx" />
+    <Content Include="yonetici\default.aspx" />
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="biletal.aspx.cs">
+      <DependentUpon>biletal.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="biletal.aspx.designer.cs">
+      <DependentUpon>biletal.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="default.aspx.cs">
+      <DependentUpon>default.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="default.aspx.designer.cs">
+      <DependentUpon>default.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="vt.cs" />
+    <Compile Include="yonetici\etkinlik.aspx.cs">
+      <DependentUpon>etkinlik.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="yonetici\etkinlik.aspx.designer.cs">
+      <DependentUpon>etkinlik.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="yonetici\kullanici.aspx.cs">
+      <DependentUpon>kullanici.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="yonetici\kullanici.aspx.designer.cs">
+      <DependentUpon>kullanici.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="yonetici\login.aspx.cs">
+      <DependentUpon>login.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="yonetici\login.aspx.designer.cs">
+      <DependentUpon>login.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="yonetici\default.aspx.cs">
+      <DependentUpon>default.aspx</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="yonetici\default.aspx.designer.cs">
+      <DependentUpon>default.aspx</DependentUpon>
+    </Compile>
+    <Compile Include="yonetici\YONETİCİ.Master.cs">
+      <DependentUpon>YONETİCİ.Master</DependentUpon>
+      <SubType>ASPXCodeBehind</SubType>
+    </Compile>
+    <Compile Include="yonetici\YONETİCİ.Master.designer.cs">
+      <DependentUpon>YONETİCİ.Master</DependentUpon>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="fe\css\.DS_Store" />
+    <Content Include="fe\css\bootstrap-grid.css.map" />
+    <Content Include="fe\css\bootstrap-grid.min.css.map" />
+    <Content Include="fe\css\bootstrap-reboot.css.map" />
+    <Content Include="fe\css\bootstrap-reboot.min.css.map" />
+    <Content Include="fe\css\bootstrap.css.map" />
+    <Content Include="fe\css\bootstrap.min.css.map" />
+    <Content Include="fe\js\bootstrap.bundle.js.map" />
+    <Content Include="fe\js\bootstrap.bundle.min.js.map" />
+    <Content Include="fe\js\bootstrap.js.map" />
+    <Content Include="fe\js\bootstrap.min.js.map" />
+    <Content Include="fe\fa\webfonts\fa-brands-400.eot" />
+    <Content Include="fe\fa\webfonts\fa-brands-400.ttf" />
+    <Content Include="fe\fa\webfonts\fa-brands-400.woff" />
+    <Content Include="fe\fa\webfonts\fa-brands-400.woff2" />
+    <Content Include="fe\fa\webfonts\fa-duotone-900.eot" />
+    <Content Include="fe\fa\webfonts\fa-duotone-900.ttf" />
+    <Content Include="fe\fa\webfonts\fa-duotone-900.woff" />
+    <Content Include="fe\fa\webfonts\fa-duotone-900.woff2" />
+    <Content Include="fe\fa\webfonts\fa-light-300.eot" />
+    <Content Include="fe\fa\webfonts\fa-light-300.ttf" />
+    <Content Include="fe\fa\webfonts\fa-light-300.woff" />
+    <Content Include="fe\fa\webfonts\fa-light-300.woff2" />
+    <Content Include="fe\fa\webfonts\fa-regular-400.eot" />
+    <Content Include="fe\fa\webfonts\fa-regular-400.ttf" />
+    <Content Include="fe\fa\webfonts\fa-regular-400.woff" />
+    <Content Include="fe\fa\webfonts\fa-regular-400.woff2" />
+    <Content Include="fe\fa\webfonts\fa-solid-900.eot" />
+    <Content Include="fe\fa\webfonts\fa-solid-900.ttf" />
+    <Content Include="fe\fa\webfonts\fa-solid-900.woff" />
+    <Content Include="fe\fa\webfonts\fa-solid-900.woff2" />
+    <Content Include="afisler\i.jpeg" />
+    <None Include="packages.config" />
+    <None Include="Web.Debug.config">
+      <DependentUpon>Web.config</DependentUpon>
+    </None>
+    <None Include="Web.Release.config">
+      <DependentUpon>Web.config</DependentUpon>
+    </None>
+    <Content Include="yonetici\YONETİCİ.Master" />
+  </ItemGroup>
+  <ItemGroup />
+  <PropertyGroup>
+    <VisualStudioVersion Condition="'$(VisualStudioVersion)' == ''">10.0</VisualStudioVersion>
+    <VSToolsPath Condition="'$(VSToolsPath)' == ''">$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v$(VisualStudioVersion)</VSToolsPath>
+  </PropertyGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(VSToolsPath)\WebApplications\Microsoft.WebApplication.targets" Condition="'$(VSToolsPath)' != ''" />
+  <Import Project="$(MSBuildExtensionsPath32)\Microsoft\VisualStudio\v10.0\WebApplications\Microsoft.WebApplication.targets" Condition="false" />
+  <ProjectExtensions>
+    <VisualStudio>
+      <FlavorProperties GUID="{349c5851-65df-11da-9384-00065b846f21}">
+        <WebProjectProperties>
+          <UseIIS>True</UseIIS>
+          <AutoAssignPort>True</AutoAssignPort>
+          <DevelopmentServerPort>51420</DevelopmentServerPort>
+          <DevelopmentServerVPath>/</DevelopmentServerVPath>
+          <IISUrl>https://localhost:44334/</IISUrl>
+          <NTLMAuthentication>False</NTLMAuthentication>
+          <UseCustomServer>False</UseCustomServer>
+          <CustomServerUrl>
+          </CustomServerUrl>
+          <SaveServerSettingsInUserFile>False</SaveServerSettingsInUserFile>
+        </WebProjectProperties>
+      </FlavorProperties>
+    </VisualStudio>
+  </ProjectExtensions>
+  <Target Name="EnsureNuGetPackageBuildImports" BeforeTargets="PrepareForBuild">
+    <PropertyGroup>
+      <ErrorText>Bu proje bu bilgisayarda olmayan NuGet paketlerine başvuru yapıyor. Bunları indirmek için NuGet Paket Geri Yükleme'yi kullanın. Daha fazla bilgi için, bkz. http://go.microsoft.com/fwlink/?LinkID=322105. Eksik dosya: {0}.</ErrorText>
+    </PropertyGroup>
+    <Error Condition="!Exists('..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props')" Text="$([System.String]::Format('$(ErrorText)', '..\packages\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.2.0.1\build\net46\Microsoft.CodeDom.Providers.DotNetCompilerPlatform.props'))" />
+  </Target>
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>
