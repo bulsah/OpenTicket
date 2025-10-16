@@ -18,15 +18,15 @@
                         <div class="card-body">
                             <h3 class="text-center mb-3">Admin Login</h3>
                             
-                            <label for="username">Username</label>
-                            <asp:TextBox ID="username" runat="server" CssClass="form-control" required></asp:TextBox>
+                            <label for="kullaniciadi">Username</label>
+                            <asp:TextBox ID="kullaniciadi" runat="server" CssClass="form-control" required></asp:TextBox>
             
-                            <label for="password" class="mt-2">Password</label>
-                            <asp:TextBox ID="password" runat="server" CssClass="form-control" TextMode="Password" required></asp:TextBox>
+                            <label for="sifre" class="mt-2">Password</label>
+                            <asp:TextBox ID="sifre" runat="server" CssClass="form-control" TextMode="Password" required></asp:TextBox>
                             
-                            <asp:Button CssClass="btn btn-info mt-3 w-100" ID="LoginButton" runat="server" Text="Login" OnClick="LoginButton_Click"/>
+                            <asp:Button CssClass="btn btn-info mt-3 w-100" ID="giris" runat="server" Text="Login" OnClick="giris_Click"/>
                             
-                            <div id="notification" runat="server" class="mt-2"></div>
+                            <div id="uyari" runat="server" class="mt-2"></div>
                         </div>
                     </div>
                 </div>

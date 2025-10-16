@@ -19,14 +19,14 @@ namespace OpenTicket.admin
             }
         }
 
-        protected void LoginButton_Click(object sender, EventArgs e)
+        protected void giris_Click(object sender, EventArgs e)
         {
             try
             {
                 // Input validation
-                if (string.IsNullOrWhiteSpace(username.Text) || string.IsNullOrWhiteSpace(password.Text))
+                if (string.IsNullOrWhiteSpace(kullaniciadi.Text) || string.IsNullOrWhiteSpace(sifre.Text))
                 {
-                    notification.InnerHtml = "<div class='alert alert-danger mt-2'>Please enter username and password.</div>";
+                    uyari.InnerHtml = "<div class='alert alert-danger mt-2'>Please enter username and password.</div>";
                     return;
                 }
 
@@ -35,7 +35,7 @@ namespace OpenTicket.admin
                 // First, get user with username (parameterized)
                 var getUserCmd = new SqlCommand(
                     "SELECT * FROM users WHERE username=@username AND isadmin=1");
-                getUserCmd.Parameters.AddWithValue("@username", username.Text);
+                getUserCmd.Parameters.AddWithValue("@username", kullaniciadi.Text);
                 
                 var reader = v.Select(getUserCmd);
                 reader.Read();
@@ -55,17 +55,17 @@ namespace OpenTicket.admin
                     if (storedPasswordHash.Contains("."))
                     {
                         // New PBKDF2 format
-                        isValidPassword = PasswordHasher.VerifyPassword(password.Text, storedPasswordHash);
+                        isValidPassword = PasswordHasher.VerifyPassword(sifre.Text, storedPasswordHash);
                     }
                     else
                     {
                         // Legacy SHA1 - verify and migrate
-                        if (PasswordHasher.VerifyLegacySHA1(password.Text, storedPasswordHash))
+                        if (PasswordHasher.VerifyLegacySHA1(sifre.Text, storedPasswordHash))
                         {
                             isValidPassword = true;
                             
                             // Migrate to new hash
-                            string newHash = PasswordHasher.HashPassword(password.Text);
+                            string newHash = PasswordHasher.HashPassword(sifre.Text);
                             var updateCmd = new SqlCommand(
                                 "UPDATE users SET passwordhash=@newhash WHERE id=@userid");
                             updateCmd.Parameters.AddWithValue("@newhash", newHash);
@@ -94,9 +94,9 @@ namespace OpenTicket.admin
                     else
                     {
                         // Log failed login attempt
-                        v.LogLoginAttempt(username.Text, false);
+                        v.LogLoginAttempt(kullaniciadi.Text, false);
                         
-                        notification.InnerHtml = "<div class='alert alert-danger mt-2'>Invalid username or password.</div>";
+                        uyari.InnerHtml = "<div class='alert alert-danger mt-2'>Invalid username or password.</div>";
                     }
                 }
                 else
@@ -105,14 +105,14 @@ namespace OpenTicket.admin
                     v.CloseConnection();
                     
                     // Log failed login attempt
-                    v.LogLoginAttempt(username.Text, false);
+                    v.LogLoginAttempt(kullaniciadi.Text, false);
                     
-                    notification.InnerHtml = "<div class='alert alert-danger mt-2'>Invalid username or password.</div>";
+                    uyari.InnerHtml = "<div class='alert alert-danger mt-2'>Invalid username or password.</div>";
                 }
             }
             catch (Exception ex)
             {
-                notification.InnerHtml = $"<div class='alert alert-danger mt-2'>An error occurred. Please try again.</div>";
+                uyari.InnerHtml = $"<div class='alert alert-danger mt-2'>An error occurred. Please try again.</div>";
                 System.Diagnostics.Debug.WriteLine($"Login error: {ex.Message}");
             }
         }
