@@ -1,4 +1,4 @@
-﻿<%@ Master Language="C#" AutoEventWireup="true" CodeBehind="YONETİCİ.master.cs" Inherits="TicketX.yonetici.YONETİCİ" %>
+﻿<%@ Master Language="C#" AutoEventWireup="true" CodeBehind="YONETİCİ.master.cs" Inherits="OpenTicket.admin.YONETİCİ" %>
 
 <!DOCTYPE html>
 

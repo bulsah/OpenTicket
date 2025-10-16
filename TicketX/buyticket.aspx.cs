@@ -16,14 +16,14 @@ namespace OpenTicket
             {
                 if (Page.Request.QueryString["action"] == "success")
                 {
-                    notification.InnerHtml = "<div class='alert alert-info'>Purchase completed successfully.</div>";
-                    purchasePanel.Visible = false;
+                    uyari.InnerHtml = "<div class='alert alert-info'>Purchase completed successfully.</div>";
+                    biletalpanel.Visible = false;
                 }
             }
 
             if (Page.Request.QueryString["code"] != null)
             {
-                purchasePanel.Visible = false;
+                biletalpanel.Visible = false;
                 
                 // SQL Injection protection - parameterized query
                 var code = Page.Request.QueryString["code"];
@@ -69,9 +69,9 @@ namespace OpenTicket
                 
                 if (reader.HasRows)
                 {
-                    eventName.Text = reader["eventname"].ToString();
-                    price.Text = reader["Expr1"].ToString();
-                    eventId_hidden.Value = reader["id"].ToString();
+                    etadi.Text = reader["eventname"].ToString();
+                    fiyat.Text = reader["Expr1"].ToString();
+                    etid.Value = reader["id"].ToString();
                 }
                 
                 if (reader != null && !reader.IsClosed)
@@ -79,44 +79,36 @@ namespace OpenTicket
             }
         }
 
-        protected void PurchaseButton_Click(object sender, EventArgs e)
+        protected void Button1_Click(object sender, EventArgs e)
         {
             try
             {
                 // Input validation
-                if (!int.TryParse(quantity.Text, out int ticketCount) || ticketCount <= 0)
+                if (!int.TryParse(sayi.Text, out int ticketCount) || ticketCount <= 0)
                 {
-                    notification.InnerHtml = "<div class='alert alert-danger'>Please enter a valid quantity.</div>";
+                    uyari.InnerHtml = "<div class='alert alert-danger'>Please enter a valid quantity.</div>";
                     return;
                 }
 
-                if (!InputValidationHelper.IsValidEmail(email.Text))
+                if (!InputValidationHelper.IsValidEmail(mail.Text))
                 {
-                    notification.InnerHtml = "<div class='alert alert-danger'>Please enter a valid email address.</div>";
+                    uyari.InnerHtml = "<div class='alert alert-danger'>Please enter a valid email address.</div>";
                     return;
                 }
 
-                if (string.IsNullOrWhiteSpace(fullname.Text) || fullname.Text.Length < 3)
+                if (string.IsNullOrWhiteSpace(ad.Text) || ad.Text.Length < 3)
                 {
-                    notification.InnerHtml = "<div class='alert alert-danger'>Please enter a valid name.</div>";
+                    uyari.InnerHtml = "<div class='alert alert-danger'>Please enter a valid name.</div>";
                     return;
                 }
 
                 vt v = new vt();
                 
-                // Generate secure hash using PBKDF2 instead of SHA1
-                string qrHash = PasswordHasher.HashPassword(DateTime.Now.ToString() + fullname.Text + email.Text);
-                
-                // Use short hash for QR code (first 32 characters)
-                string shortHash = Convert.ToBase64String(
-                    System.Text.Encoding.UTF8.GetBytes(qrHash)
-                ).Substring(0, 32).Replace("/", "_").Replace("+", "-");
-
                 for (int i = 0; i < ticketCount; i++)
                 {
-                    // Generate unique hash for each ticket
-                    string ticketHash = PasswordHasher.HashPassword(shortHash + i.ToString());
-                    string ticketShortHash = Convert.ToBase64String(
+                    // Generate unique hash for each ticket using PBKDF2
+                    string ticketHash = PasswordHasher.HashPassword(DateTime.Now.ToString("O") + ad.Text + i.ToString());
+                    string shortHash = Convert.ToBase64String(
                         System.Text.Encoding.UTF8.GetBytes(ticketHash)
                     ).Substring(0, 32).Replace("/", "_").Replace("+", "-");
 
@@ -125,34 +117,34 @@ namespace OpenTicket
                         @"INSERT INTO ticketholders (username, eventid, transactiondate, priceid, qrcodehash, email) 
                           VALUES (@username, @eventid, GETDATE(), @priceid, @qrcode, @email)");
                     
-                    cmd.Parameters.AddWithValue("@username", HttpUtility.HtmlEncode(fullname.Text));
-                    cmd.Parameters.AddWithValue("@eventid", int.Parse(eventId_hidden.Value));
-                    cmd.Parameters.AddWithValue("@priceid", decimal.Parse(price.Text));
-                    cmd.Parameters.AddWithValue("@qrcode", ticketShortHash);
-                    cmd.Parameters.AddWithValue("@email", email.Text);
+                    cmd.Parameters.AddWithValue("@username", HttpUtility.HtmlEncode(ad.Text));
+                    cmd.Parameters.AddWithValue("@eventid", int.Parse(etid.Value));
+                    cmd.Parameters.AddWithValue("@priceid", decimal.Parse(fiyat.Text));
+                    cmd.Parameters.AddWithValue("@qrcode", shortHash);
+                    cmd.Parameters.AddWithValue("@email", mail.Text);
 
                     v.InsertUpdateDelete(cmd);
 
                     // Send email notification
                     string emailBody = $@"
-                        <h2>Dear {HttpUtility.HtmlEncode(fullname.Text)},</h2>
+                        <h2>Dear {HttpUtility.HtmlEncode(ad.Text)},</h2>
                         <p>Your ticket purchase has been completed successfully.</p>
-                        <p><a href='https://localhost:44334/buyticket.aspx?code={ticketShortHash}'>
+                        <p><a href='https://localhost:44334/buyticket.aspx?code={shortHash}'>
                            Click here to view your ticket and QR code
                         </a></p>
                         <p>Thank you for choosing OpenTicket!</p>";
 
-                    v.SendEmail(email.Text, "Ticket Purchase Confirmation", emailBody);
+                    v.SendEmail(mail.Text, "Ticket Purchase Confirmation", emailBody);
                 }
 
                 // Log the operation
-                v.LogOperation($"Ticket purchase: {ticketCount} tickets for event ID {eventId_hidden.Value}");
+                v.LogOperation($"Ticket purchase: {ticketCount} tickets for event ID {etid.Value}");
 
                 Page.Response.Redirect("buyticket.aspx?action=success");
             }
             catch (Exception ex)
             {
-                notification.InnerHtml = $"<div class='alert alert-danger'>An error occurred: {HttpUtility.HtmlEncode(ex.Message)}</div>";
+                uyari.InnerHtml = $"<div class='alert alert-danger'>An error occurred: {HttpUtility.HtmlEncode(ex.Message)}</div>";
                 
                 // Log the error
                 System.Diagnostics.Debug.WriteLine($"Purchase error: {ex.Message}");

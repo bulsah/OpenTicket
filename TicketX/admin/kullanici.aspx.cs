@@ -6,149 +6,204 @@ using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 
-namespace TicketX.yonetici
+namespace OpenTicket.admin
 {
     public partial class kullanici : System.Web.UI.Page
     {
         protected void Page_Load(object sender, EventArgs e)
         {
-
-
-
-            vt v = new vt();
-
-            if (Request.QueryString["kullanici"]!=null)
+            // Handle query string actions
+            if (Request.QueryString["user"] != null)
             {
-                if (Request.QueryString["kullanici"]!=null)
+                if (!int.TryParse(Request.QueryString["user"], out int userId))
                 {
-                    var k = Request.QueryString["kullanici"];
-                if (Request.QueryString["sifre"]!=null)
-                {
-                    if (Request.QueryString["sifre"]=="1")
-                    {
-                          var okun=  v.Select("select * from kullanicilar where id=" + k);
-                            okun.Read();
-                            if (okun.HasRows)
-                            {
-
-                                var ys = v.randompass(8);
-                                v.SendMail(okun["kullanicimail"].ToString(), "Yeni Şifre", "Yeni Şifreniz="+ys);
-                                v.InsertUpdateDelete("update kullanicilar set kullanicisifre='"+v.Crypt(ys)+"' where id="+k);
-                            }
-
-                        }
-
+                    Page.Response.Redirect("users.aspx");
+                    return;
                 }
 
-                    if (Request.QueryString["statu"]!=null)
-                    {
-                        v.InsertUpdateDelete("update kullanicilar set aktif=" + Request.QueryString["statu"] + " where id=" + k);
-                    }
-                    if (Request.QueryString["yonetici"]!=null)
-                    {
-                        v.InsertUpdateDelete("update kullanicilar set yonetici=" + Request.QueryString["yonetici"] + " where id=" + k);
-                    }
-
-                }
-
-               
+                HandleUserActions(userId);
             }
 
-
-            var t = "<table class='table'>";
-
-
-            //////////////// id, kullanicimail, kullaniciadi, kullanicisifre, kayittarihi, aktif, yonetici
-            t += "<thead><tr><td>Id</td><td>Mail</td><td>Adı</td><td>Kayıt Tarihi</td><td>Aktif</td><td>Yonetici?</td><td>ŞifreGönder</td></tr></thead>";
-         var oku=   v.Select("select * from kullanicilar");
-            oku.Read();
-            if (oku.HasRows)
-            {
-                t += "<tbody><tr>";
-                t += "<td>"+oku[0].ToString()+"</td>";
-                t += "<td>"+oku[1].ToString()+"</td>";
-                t += "<td>"+oku[2].ToString()+"</td>";
-             
-                t += "<td>"+oku[4].ToString()+"</td>";
-                t += "<td>" + aktifmi(oku[5].ToString(), oku[0].ToString()) + "</td>";
-                t += "<td>" + yoneticimi(oku[6].ToString(), oku[0].ToString()) + "</td>";
-                t += "<td><a class='btn btn-sm btn-info' href='?kullanici=" + oku[0].ToString() + "&sifre=1'>Gonder</a></td>";
-
-
-                t += "</tr>";
-
-                while (oku.Read())
-                {
-                    t += "<tr>";
-                    t += "<td>" + oku[0].ToString() + "</td>";
-                    t += "<td>" + oku[1].ToString() + "</td>";
-                    t += "<td>" + oku[2].ToString() + "</td>";
-
-                    t += "<td>" + oku[4].ToString() + "</td>";
-                    t += "<td>" + aktifmi(oku[5].ToString(), oku[0].ToString()) + "</td>";
-                    t += "<td>" + yoneticimi(oku[6].ToString(),oku[0].ToString()) + "</td>";
-                    t += "<td><a class='btn btn-sm btn-info' href='?kullanici=" + oku[0].ToString()+"&sifre=1'>Gonder</td>";
-                 
-
-                    t += "</tr>";
-
-                }
-                t += "</tbody></table>";
-
-            }
-            else
-            {
-                t += "<tbody><tr><td colspan='4'></td></tr></tbody></table>";
-            }
-            table.InnerHtml = t;
-        
+            LoadUsersTable();
         }
 
-
-        public static string aktifmi(string a , string user)
+        private void HandleUserActions(int userId)
         {
-            var c = "asdadsasdads";
-            if (a.ToLower()== "true")
+            try
             {
-                c="<a class='btn btn-sm btn-info' href='?kullanici="+user+"&statu=0'>Aktif</a>";
+                vt v = new vt();
+
+                // Reset password action
+                if (Request.QueryString["resetpw"] == "1")
+                {
+                    var getUserCmd = new SqlCommand("SELECT * FROM users WHERE id=@userid");
+                    getUserCmd.Parameters.AddWithValue("@userid", userId);
+                    
+                    var reader = v.Select(getUserCmd);
+                    reader.Read();
+                    
+                    if (reader.HasRows)
+                    {
+                        string userEmail = reader["email"].ToString();
+                        reader.Close();
+
+                        // Generate secure random password
+                        string newPassword = v.GenerateRandomPassword(12);
+                        string hashedPassword = PasswordHasher.HashPassword(newPassword);
+
+                        // Update password - parameterized
+                        var updateCmd = new SqlCommand(
+                            "UPDATE users SET passwordhash=@hash WHERE id=@userid");
+                        updateCmd.Parameters.AddWithValue("@hash", hashedPassword);
+                        updateCmd.Parameters.AddWithValue("@userid", userId);
+                        v.InsertUpdateDelete(updateCmd);
+
+                        // Send email
+                        v.SendEmail(userEmail, "Password Reset", 
+                            $"Your new password is: <strong>{newPassword}</strong><br>Please change it after login.");
+                        
+                        v.LogOperation($"Password reset for user ID: {userId}");
+                    }
+                }
+
+                // Toggle active status
+                if (Request.QueryString["status"] != null)
+                {
+                    int status = Request.QueryString["status"] == "1" ? 1 : 0;
+                    var cmd = new SqlCommand("UPDATE users SET active=@status WHERE id=@userid");
+                    cmd.Parameters.AddWithValue("@status", status);
+                    cmd.Parameters.AddWithValue("@userid", userId);
+                    v.InsertUpdateDelete(cmd);
+                }
+
+                // Toggle admin status
+                if (Request.QueryString["admin"] != null)
+                {
+                    int adminStatus = Request.QueryString["admin"] == "1" ? 1 : 0;
+                    var cmd = new SqlCommand("UPDATE users SET isadmin=@admin WHERE id=@userid");
+                    cmd.Parameters.AddWithValue("@admin", adminStatus);
+                    cmd.Parameters.AddWithValue("@userid", userId);
+                    v.InsertUpdateDelete(cmd);
+                }
             }
-            else
+            catch (Exception ex)
             {
-                c = "<a class='btn btn-sm btn-danger' href='?kullanici=" + user + "&statu=1'>Pasif</a>";
+                System.Diagnostics.Debug.WriteLine($"HandleUserActions error: {ex.Message}");
             }
-
-
-            return c;
         }
 
-        public static string yoneticimi(string a, string user)
+        private void LoadUsersTable()
         {
-            var c = "asdadsasdads";
-            if (a.ToLower() == "true")
+            try
             {
-                c = "<a class='btn btn-sm btn-info' href='?kullanici=" + user + "&yonetici=0'>Yonetici</a>";
+                var html = "<table class='table table-striped'>";
+                html += @"<thead><tr>
+                    <th>ID</th><th>Email</th><th>Name</th><th>Registration Date</th>
+                    <th>Active</th><th>Admin</th><th>Actions</th>
+                </tr></thead><tbody>";
+
+                vt v = new vt();
+                var cmd = new SqlCommand("SELECT * FROM users ORDER BY id DESC");
+                var reader = v.Select(cmd);
+
+                while (reader.Read())
+                {
+                    string userId = reader["id"].ToString();
+                    html += "<tr>";
+                    html += $"<td>{HttpUtility.HtmlEncode(userId)}</td>";
+                    html += $"<td>{HttpUtility.HtmlEncode(reader["email"].ToString())}</td>";
+                    html += $"<td>{HttpUtility.HtmlEncode(reader["username"].ToString())}</td>";
+                    html += $"<td>{HttpUtility.HtmlEncode(reader["registrationdate"].ToString())}</td>";
+                    html += $"<td>{GetActiveButton(reader["active"].ToString(), userId)}</td>";
+                    html += $"<td>{GetAdminButton(reader["isadmin"].ToString(), userId)}</td>";
+                    html += $"<td><a class='btn btn-sm btn-warning' href='?user={userId}&resetpw=1'>Reset Password</a></td>";
+                    html += "</tr>";
+                }
+
+                reader.Close();
+                html += "</tbody></table>";
+                table.InnerHtml = html;
             }
+            catch (Exception ex)
+            {
+                table.InnerHtml = $"<div class='alert alert-danger'>Error loading users: {HttpUtility.HtmlEncode(ex.Message)}</div>";
+                System.Diagnostics.Debug.WriteLine($"LoadUsersTable error: {ex.Message}");
+            }
+        }
+
+        private string GetActiveButton(string isActive, string userId)
+        {
+            bool active = isActive.ToLower() == "true";
+            if (active)
+                return $"<a class='btn btn-sm btn-success' href='?user={userId}&status=0'>Active</a>";
             else
-            {
-                c = "<a class='btn btn-sm btn-danger' href='?kullanici=" + user + "&yonetici=1'>Kullanıcı</a>";
-            }
+                return $"<a class='btn btn-sm btn-danger' href='?user={userId}&status=1'>Inactive</a>";
+        }
 
-
-            return c;
+        private string GetAdminButton(string isAdmin, string userId)
+        {
+            bool admin = isAdmin.ToLower() == "true";
+            if (admin)
+                return $"<a class='btn btn-sm btn-info' href='?user={userId}&admin=0'>Admin</a>";
+            else
+                return $"<a class='btn btn-sm btn-secondary' href='?user={userId}&admin=1'>User</a>";
         }
 
         protected void Unnamed1_Click(object sender, EventArgs e)
         {
-            vt v = new vt();
+            try
+            {
+                // Validate inputs
+                if (string.IsNullOrWhiteSpace(kullaniciadi.Text) || 
+                    string.IsNullOrWhiteSpace(kullanicimail.Text) || 
+                    string.IsNullOrWhiteSpace(kullanicisifre.Text))
+                {
+                    hata.InnerText = "All fields are required.";
+                    return;
+                }
 
-            var s = new SqlCommand(
-            "insert into kullanicilar (kullaniciadi,kullanicimail,kullanicisifre,kayittarihi,aktif,yonetici) values (@a,@b,@c,GetDate(),1,0) select SCOPE_IDENTITY() ");
-            s.Parameters.Add("@a", kullaniciadi.Text);
-            s.Parameters.Add("@b", kullanicimail.Text);
-            s.Parameters.Add("@c", v.Crypt(kullanicisifre.Text));
-            var oku = v.Select2(s);
-            oku.Read();
-            Page.Response.Redirect("kullanici.aspx");
+                // Validate email
+                if (!InputValidationHelper.IsValidEmail(kullanicimail.Text))
+                {
+                    hata.InnerText = "Please enter a valid email address.";
+                    return;
+                }
+
+                // Validate password strength
+                if (!InputValidationHelper.IsStrongPassword(kullanicisifre.Text, out string message))
+                {
+                    hata.InnerText = message;
+                    return;
+                }
+
+                vt v = new vt();
+
+                // Hash password with PBKDF2
+                string hashedPassword = PasswordHasher.HashPassword(kullanicisifre.Text);
+
+                // Insert user - parameterized query
+                var cmd = new SqlCommand(@"
+                    INSERT INTO users (username, email, passwordhash, registrationdate, active, isadmin) 
+                    VALUES (@name, @email, @hash, GETDATE(), 1, 0);
+                    SELECT SCOPE_IDENTITY()");
+                
+                cmd.Parameters.AddWithValue("@name", HttpUtility.HtmlEncode(kullaniciadi.Text));
+                cmd.Parameters.AddWithValue("@email", kullanicimail.Text);
+                cmd.Parameters.AddWithValue("@hash", hashedPassword);
+
+                var newId = v.ExecuteScalar(cmd);
+
+                // Log operation
+                v.LogOperation($"New user created: {kullaniciadi.Text} (ID: {newId})");
+
+                // Redirect to refresh
+                Page.Response.Redirect("users.aspx");
+            }
+            catch (Exception ex)
+            {
+                hata.InnerText = $"Error creating user: {HttpUtility.HtmlEncode(ex.Message)}";
+                System.Diagnostics.Debug.WriteLine($"Create user error: {ex.Message}");
+            }
         }
     }
 }

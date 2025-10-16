@@ -1,4 +1,4 @@
-﻿<%@ Page Title="" Language="C#" MasterPageFile="~/yonetici/YONETİCİ.Master" AutoEventWireup="true" CodeBehind="etkinlik.aspx.cs" Inherits="TicketX.yonetici.etkinlik" %>
+﻿<%@ Page Title="" Language="C#" MasterPageFile="~/admin/YONETİCİ.Master" AutoEventWireup="true" CodeBehind="etkinlik.aspx.cs" Inherits="OpenTicket.admin.etkinlik" %>
 <asp:Content ID="Content1" ContentPlaceHolderID="head" runat="server">
 </asp:Content>
 <asp:Content ID="Content2" ContentPlaceHolderID="ContentPlaceHolder1" runat="server">

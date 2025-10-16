@@ -6,180 +6,197 @@ using System.Web;
 using System.Web.UI;
 using System.Web.UI.WebControls;
 
-namespace TicketX.yonetici
+namespace OpenTicket.admin
 {
     public partial class etkinlik : System.Web.UI.Page
     {
         protected void Page_Load(object sender, EventArgs e)
         {
-            vt v = new vt();
-            v.dropdownveri(etkinlikalani, "select id, etkinlikalanadi from etkinlikalani");
-            v.dropdownveri(fiyatlis, "select id,fiyat from fiyatlar where aktif=1");
-            tablogetir();
+            if (!IsPostBack)
+            {
+                LoadDropdowns();
+                LoadEventsTable();
+            }
+        }
+
+        private void LoadDropdowns()
+        {
+            try
+            {
+                vt v = new vt();
+                
+                // Load event areas dropdown
+                var cmd1 = new SqlCommand("SELECT id, areaname FROM eventareas ORDER BY areaname");
+                v.FillDropdown(etkinlikalani, cmd1, "areaname", "id");
+                
+                // Load price list dropdown
+                var cmd2 = new SqlCommand("SELECT id, price FROM pricelist WHERE active=1 ORDER BY price");
+                v.FillDropdown(fiyatlis, cmd2, "price", "id");
+            }
+            catch (Exception ex)
+            {
+                hata.InnerText = $"Error loading dropdowns: {ex.Message}";
+                System.Diagnostics.Debug.WriteLine($"LoadDropdowns error: {ex.Message}");
+            }
         }
 
         protected void kaydet_Click(object sender, EventArgs e)
         {
-            if (afisekle.HasFile)
-                try
-                {
-                    if (afisekle.PostedFile.ContentType == "image/jpeg")
-                    {
-                        if (afisekle.PostedFile.ContentLength < 99999999999999)
-                        {
-   vt v = new vt();
-                            var dosyaadi = v.Crypt(DateTime.Now.ToString("O") + "bulsah");
-                            afisekle.SaveAs(Server.MapPath("../afisler/") + dosyaadi+".jpeg");
-                            hata.InnerText = "<div class='alert alert-info'>Kayıt Yapıldı</div>";
-
-                         
-                            var s = new SqlCommand(
-                            "insert into etkinlikler (etkinlikadi, etkinlikaciklama, etkinlikalani, tarih," +
-                            " saat, kayittarihi, etkinlikkapasitesi, etkinlikafis"+
-                            ",fiyat) values (@a,@b,@c,@d,@f, GetDate(),@g,@h,@j) select SCOPE_IDENTITY() ");
-                            s.Parameters.Add("@a", etkinlikadi.Text);
-                            s.Parameters.Add("@b", detay.Text);
-                            s.Parameters.Add("@c",etkinlikalani.SelectedValue );
-                            s.Parameters.Add("@j",fiyatlis.SelectedValue );
-                            s.Parameters.Add("@d",tarih.Text );
-                            s.Parameters.Add("@f",saat.Text );
-                            s.Parameters.Add("@g",kapasite.Text );
-                            s.Parameters.Add("@h",dosyaadi+".jpeg" );
-                            var oku = v.Select2(s);
-                            oku.Read();
-
-
-
-                        }
-                        else
-                        {
-                            hata.InnerText = "Maksimum boyutu aştınız";
-                        }
-                    }
-                    else
-                    {
-                        hata.InnerText = "Resim dosyası seçin.";
-                    }
-
-
-                   
-
-
-                }
-                catch (Exception ex)
-                {
-                    hata.InnerText = "Hata Oluştu: " + ex.Message.ToString();
-                }
-            else
+            try
             {
-                hata.InnerText = "Dosya Seçin ve GÖNDER Butonuna Tıklayın.";
+                // Validate inputs
+                if (string.IsNullOrWhiteSpace(etkinlikadi.Text))
+                {
+                    hata.InnerText = "Event name is required.";
+                    return;
+                }
+
+                if (!afisekle.HasFile)
+                {
+                    hata.InnerText = "Please select a poster image.";
+                    return;
+                }
+
+                // Validate file type
+                if (afisekle.PostedFile.ContentType != "image/jpeg" && 
+                    afisekle.PostedFile.ContentType != "image/jpg")
+                {
+                    hata.InnerText = "Please select a JPEG image file.";
+                    return;
+                }
+
+                // Validate file size (10 MB max)
+                if (afisekle.PostedFile.ContentLength > 10485760)
+                {
+                    hata.InnerText = "Maximum file size exceeded (10 MB max).";
+                    return;
+                }
+
+                vt v = new vt();
+                
+                // Generate secure filename
+                string secureFileName = PasswordHasher.HashPassword(DateTime.Now.ToString("O") + etkinlikadi.Text);
+                string shortFileName = Convert.ToBase64String(
+                    System.Text.Encoding.UTF8.GetBytes(secureFileName)
+                ).Substring(0, 40).Replace("/", "_").Replace("+", "-") + ".jpeg";
+
+                // Save file
+                string savePath = Server.MapPath("../posters/") + shortFileName;
+                afisekle.SaveAs(savePath);
+
+                // Insert event - parameterized query
+                var cmd = new SqlCommand(@"
+                    INSERT INTO events (eventname, eventdescription, eventarea, date, time, 
+                                       registrationdate, eventcapacity, eventposter, price, active) 
+                    VALUES (@name, @description, @area, @date, @time, GETDATE(), @capacity, @poster, @price, 1);
+                    SELECT SCOPE_IDENTITY()");
+                
+                cmd.Parameters.AddWithValue("@name", HttpUtility.HtmlEncode(etkinlikadi.Text));
+                cmd.Parameters.AddWithValue("@description", HttpUtility.HtmlEncode(detay.Text));
+                cmd.Parameters.AddWithValue("@area", etkinlikalani.SelectedValue);
+                cmd.Parameters.AddWithValue("@price", fiyatlis.SelectedValue);
+                cmd.Parameters.AddWithValue("@date", tarih.Text);
+                cmd.Parameters.AddWithValue("@time", saat.Text);
+                cmd.Parameters.AddWithValue("@capacity", kapasite.Text);
+                cmd.Parameters.AddWithValue("@poster", shortFileName);
+
+                var newId = v.ExecuteScalar(cmd);
+
+                hata.InnerText = $"Event created successfully! ID: {newId}";
+                
+                // Reload table
+                LoadEventsTable();
+                
+                // Clear form
+                ClearForm();
+            }
+            catch (Exception ex)
+            {
+                hata.InnerText = $"Error: {HttpUtility.HtmlEncode(ex.Message)}";
+                System.Diagnostics.Debug.WriteLine($"Save event error: {ex.Message}");
             }
         }
 
-        public void tablogetir()
-
+        private void LoadEventsTable()
         {
-
-            var t = "<table class='table'>";
-            vt v = new vt();
-
-            //// etkinlikadi, etkinlikaciklama, etkinlikalani, tarih, saat, kayittarihi, etkinlikkapasitesi, etkinlikafis
-
-            t += "<thead><tr><td>Id</td>" +
-                "<td>Etkinlik Adı</td>" +
-                "<td>Açıklama</td>" +
-                "<td>Alan</td>" +
-                "<td>Tarih</td>" +
-                "<td>Saat</td>" +
-                "<td>Kayıt Tarihi</td>" +
-                "<td>Kapasite</td>" +
-                "<td>Afiş</td>" +
-                "<td>Fiyat</td>" +
-                "<td>Aktif</td>" +
-                "</tr></thead>";
-            var oku = v.Select("select * from etkinliklistesi");
-            oku.Read();
-            if (oku.HasRows)
+            try
             {
-                t += "<tbody><tr>";
-                t += "<td>" + oku[0].ToString() + "</td>";
-                t += "<td>" + oku[1].ToString() + "</td>";
-                t += "<td>" + oku[2].ToString() + "</td>";
+                var html = "<table class='table table-striped'>";
+                html += @"<thead><tr>
+                    <th>ID</th><th>Event Name</th><th>Description</th><th>Area</th>
+                    <th>Date</th><th>Time</th><th>Registration</th><th>Capacity</th>
+                    <th>Poster</th><th>Price</th><th>Status</th>
+                </tr></thead><tbody>";
 
-                t += "<td>" + oku[3].ToString() + "</td>";
-                t += "<td>" + oku[4].ToString().Replace("00:00:00","") + "</td>";
-                t += "<td>" + oku[5].ToString() + "</td>";
-                t += "<td>" + oku[6].ToString() + "</td>";
-                t += "<td>" + oku[7].ToString() +"\\"+oran(oku[0].ToString())+ "</td>";
-                t += "<td><img src='../afisler/" + oku[8].ToString() + "' class='minifoto'></img></td>";
-                t += "<td>" + oku[9].ToString() + "</td>";
-               
-                t += "<td>" + aktifmi(oku[10].ToString(), oku[0].ToString()) + "</td>";
+                vt v = new vt();
+                var cmd = new SqlCommand("SELECT * FROM eventlist ORDER BY id DESC");
+                var reader = v.Select(cmd);
 
-
-
-                t += "</tr>";
-
-                while (oku.Read())
+                while (reader.Read())
                 {
-                    t += "<tr>";
-                    t += "<td>" + oku[0].ToString() + "</td>";
-                    t += "<td>" + oku[1].ToString() + "</td>";
-                    t += "<td>" + oku[2].ToString() + "</td>";
-
-                    t += "<td>" + oku[3].ToString() + "</td>";
-                    t += "<td>" + oku[4].ToString().Replace("00:00:00", "") + "</td>";
-                    t += "<td>" + oku[5].ToString() + "</td>";
-                    t += "<td>" + oku[6].ToString() + "</td>";
-                    t += "<td>" + oku[7].ToString() + "\\" + oran(oku[0].ToString()) + "</td>";
-                    t += "<td><img src='../afisler/" + oku[8].ToString() + "' class='minifoto'></img></td>";
-                    t += "<td>" + oku[9].ToString() + "</td>";
-                    t += "<td>" +aktifmi(oku[10].ToString(), oku[0].ToString()) + "</td>";
-                    t += "</tr>";
-
+                    string eventId = reader["id"].ToString();
+                    html += "<tr>";
+                    html += $"<td>{HttpUtility.HtmlEncode(eventId)}</td>";
+                    html += $"<td>{HttpUtility.HtmlEncode(reader["eventname"].ToString())}</td>";
+                    html += $"<td>{HttpUtility.HtmlEncode(reader["eventdescription"].ToString())}</td>";
+                    html += $"<td>{HttpUtility.HtmlEncode(reader["eventareaname"].ToString())}</td>";
+                    html += $"<td>{HttpUtility.HtmlEncode(reader["date"].ToString().Replace("00:00:00", ""))}</td>";
+                    html += $"<td>{HttpUtility.HtmlEncode(reader["time"].ToString())}</td>";
+                    html += $"<td>{HttpUtility.HtmlEncode(reader["registrationdate"].ToString())}</td>";
+                    html += $"<td>{HttpUtility.HtmlEncode(reader["eventcapacity"].ToString())}\\{GetSalesCount(eventId)}</td>";
+                    html += $"<td><img src='../posters/{HttpUtility.HtmlEncode(reader["eventposter"].ToString())}' class='minifoto'/></td>";
+                    html += $"<td>{HttpUtility.HtmlEncode(reader["Expr1"].ToString())}</td>";
+                    html += $"<td>{GetStatusButton(reader["active"].ToString(), eventId)}</td>";
+                    html += "</tr>";
                 }
-                t += "</tbody></table>";
 
+                reader.Close();
+                html += "</tbody></table>";
+                tablo.InnerHtml = html;
             }
-            else
+            catch (Exception ex)
             {
-                t += "<tbody><tr><td colspan='4'></td></tr></tbody></table>";
+                tablo.InnerHtml = $"<div class='alert alert-danger'>Error loading events: {HttpUtility.HtmlEncode(ex.Message)}</div>";
+                System.Diagnostics.Debug.WriteLine($"LoadEventsTable error: {ex.Message}");
             }
-            tablo.InnerHtml = t;
-
-
-
         }
 
-
-        public static string oran(string etkinlikid)
+        private string GetSalesCount(string eventId)
         {
-            var t = "";
-            vt v = new vt();
-         var oku=   v.Select("select count(*) from biletalanlar where aktif=1 and etkinlikid=" + etkinlikid);
-            oku.Read();
-            if (oku.HasRows)
+            try
             {
-                t = oku[0].ToString();
-            }
+                if (!int.TryParse(eventId, out int validId))
+                    return "0";
 
-            return t;
+                vt v = new vt();
+                var cmd = new SqlCommand("SELECT COUNT(*) FROM ticketholders WHERE active=1 AND eventid=@eventid");
+                cmd.Parameters.AddWithValue("@eventid", validId);
+                
+                var count = v.ExecuteScalar(cmd);
+                return count?.ToString() ?? "0";
+            }
+            catch
+            {
+                return "0";
+            }
         }
 
-        public static string aktifmi(string a, string etk)
+        private string GetStatusButton(string isActive, string eventId)
         {
-            var c = "asdadsasdads";
-            if (a.ToLower() == "true")
-            {
-                c = "<a class='btn btn-sm btn-info' href='?etkinlik=" + etk + "&statu=0'>Aktif</a>";
-            }
+            bool active = isActive.ToLower() == "true";
+            if (active)
+                return $"<a class='btn btn-sm btn-success' href='?event={eventId}&status=0'>Active</a>";
             else
-            {
-                c = "<a class='btn btn-sm btn-danger' href='?etkinlik=" + etk + "&statu=1'>Pasif</a>";
-            }
+                return $"<a class='btn btn-sm btn-danger' href='?event={eventId}&status=1'>Inactive</a>";
+        }
 
-
-            return c;
+        private void ClearForm()
+        {
+            etkinlikadi.Text = "";
+            detay.Text = "";
+            tarih.Text = "";
+            saat.Text = "";
+            kapasite.Text = "";
         }
     }
 }
