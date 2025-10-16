@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!--
-  ÖRNEKKONFİGÜRASYON DOSYASI
+  EXAMPLE CONFIGURATION FILE
   
-  Bu dosyayı kopyalayarak Web.config oluşturun ve kendi ayarlarınızı yapın:
-  1. Bu dosyayı Web.config olarak kopyalayın
-  2. Connection string'i kendi veritabanınıza göre güncelleyin
-  3. SMTP ayarlarını güncelleyin
-  4. Web.config dosyasını GIT'e COMMIT ETMEYİN
+  To use this file:
+  1. Copy this file as Web.config
+  2. Update the connection string for your database
+  3. Update SMTP settings
+  4. DO NOT commit Web.config to GIT
   
-  Production ortamı için ortam değişkenleri kullanın:
-  - TICKETX_CONNECTION_STRING
-  - TICKETX_SMTPHOST
-  - TICKETX_SMTPUSERNAME
-  - TICKETX_SMTPPASSWORD
+  For production environment, use environment variables:
+  - OPENTICKET_CONNECTION_STRING
+  - OPENTICKET_SMTPHOST
+  - OPENTICKET_SMTPUSERNAME
+  - OPENTICKET_SMTPPASSWORD
 -->
 <configuration>
   <connectionStrings>
-    <add name="TicketXDb" 
+    <add name="OpenTicketDb" 
          connectionString="Data Source=YOUR_SERVER;Initial Catalog=ticket;User ID=YOUR_USER;Password=YOUR_PASSWORD;" 
          providerName="System.Data.SqlClient" />
   </connectionStrings>
@@ -27,7 +27,7 @@
     <add key="SmtpUsername" value="your-email@gmail.com" />
     <add key="SmtpPassword" value="YOUR_APP_PASSWORD" />
     <add key="SmtpSenderEmail" value="your-email@gmail.com" />
-    <add key="SmtpSenderName" value="TicketX" />
+    <add key="SmtpSenderName" value="OpenTicket" />
     <add key="SmtpEnableSsl" value="true" />
   </appSettings>
 
