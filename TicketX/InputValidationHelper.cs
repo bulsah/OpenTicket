@@ -2,16 +2,16 @@ using System;
 using System.Text.RegularExpressions;
 using System.Web;
 
-namespace TicketX
+namespace OpenTicket
 {
     /// <summary>
-    /// Input validation ve sanitization için helper sınıfı
-    /// XSS, SQL Injection ve diğer injection saldırılarına karşı koruma
+    /// Helper class for input validation and sanitization
+    /// Protection against XSS, SQL Injection and other injection attacks
     /// </summary>
     public static class InputValidationHelper
     {
         /// <summary>
-        /// Email adresi formatını doğrular
+        /// Validates email address format
         /// </summary>
         public static bool IsValidEmail(string email)
         {
@@ -20,7 +20,7 @@ namespace TicketX
 
             try
             {
-                // RFC 5322 compliant email regex (basitleştirilmiş)
+                // RFC 5322 compliant email regex (simplified)
                 var regex = new Regex(
                     @"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$",
                     RegexOptions.IgnoreCase | RegexOptions.Compiled,
@@ -36,21 +36,21 @@ namespace TicketX
         }
 
         /// <summary>
-        /// Telefon numarası formatını doğrular (Türkiye)
+        /// Validates phone number format (Turkey)
         /// </summary>
         public static bool IsValidPhoneNumber(string phone)
         {
             if (string.IsNullOrWhiteSpace(phone))
                 return false;
 
-            // Sadece rakamları al
+            // Extract only digits
             string digitsOnly = Regex.Replace(phone, @"[^\d]", "");
 
-            // Türkiye telefon: 10 veya 11 hane (0 ile başlayabilir)
+            // Turkish phone: 10 or 11 digits (can start with 0)
             if (digitsOnly.Length < 10 || digitsOnly.Length > 11)
                 return false;
 
-            // 5 ile başlamalı (cep telefonu)
+            // Should start with 5 (mobile phone)
             if (digitsOnly.StartsWith("0"))
                 return digitsOnly.Length == 11 && digitsOnly[1] == '5';
             else
@@ -58,7 +58,7 @@ namespace TicketX
         }
 
         /// <summary>
-        /// String'in sadece harf ve rakam içerdiğini kontrol eder
+        /// Checks if string contains only letters and numbers
         /// </summary>
         public static bool IsAlphanumeric(string input)
         {
@@ -69,7 +69,7 @@ namespace TicketX
         }
 
         /// <summary>
-        /// String'in sadece harf içerdiğini kontrol eder
+        /// Checks if string contains only letters
         /// </summary>
         public static bool IsAlpha(string input)
         {
@@ -80,7 +80,7 @@ namespace TicketX
         }
 
         /// <summary>
-        /// Pozitif integer doğrular
+        /// Validates positive integer
         /// </summary>
         public static bool IsPositiveInteger(string input)
         {
@@ -91,7 +91,7 @@ namespace TicketX
         }
 
         /// <summary>
-        /// XSS saldırılarına karşı input'u temizler ve encode eder
+        /// Cleans and encodes input against XSS attacks
         /// </summary>
         public static string SanitizeInput(string input)
         {
@@ -101,23 +101,23 @@ namespace TicketX
             // HTML encode
             string sanitized = HttpUtility.HtmlEncode(input);
 
-            // Tehlikeli karakterleri temizle
+            // Remove dangerous characters
             sanitized = Regex.Replace(sanitized, @"[<>""']", string.Empty);
 
             return sanitized;
         }
 
         /// <summary>
-        /// SQL Injection karakterlerini temizler
-        /// NOT: Bu, parametreli sorguların yerine geçmez! Sadek ek bir katman.
+        /// Cleans SQL Injection characters
+        /// NOTE: This does NOT replace parameterized queries! Just an additional layer.
         /// </summary>
         public static string SanitizeSqlInput(string input)
         {
             if (string.IsNullOrWhiteSpace(input))
                 return string.Empty;
 
-            // Tehlikeli SQL karakterlerini temizle
-            // Ama asıl korumanız parametreli sorgular olmalı!
+            // Remove dangerous SQL characters
+            // But your main protection should be parameterized queries!
             string sanitized = input
                 .Replace("'", "''")  // Single quote escape
                 .Replace("--", "")   // SQL comment
@@ -131,20 +131,20 @@ namespace TicketX
         }
 
         /// <summary>
-        /// Dosya adını güvenli hale getirir
+        /// Makes filename safe
         /// </summary>
         public static string SanitizeFileName(string fileName)
         {
             if (string.IsNullOrWhiteSpace(fileName))
                 return "unnamed";
 
-            // Geçersiz karakterleri temizle
+            // Remove invalid characters
             string invalidChars = Regex.Escape(new string(System.IO.Path.GetInvalidFileNameChars()));
             string invalidRegStr = string.Format(@"([{0}]*\.+$)|([{0}]+)", invalidChars);
 
             string sanitized = Regex.Replace(fileName, invalidRegStr, "_");
 
-            // Maksimum uzunluk
+            // Maximum length
             if (sanitized.Length > 255)
                 sanitized = sanitized.Substring(0, 255);
 
@@ -152,24 +152,24 @@ namespace TicketX
         }
 
         /// <summary>
-        /// URL'nin güvenli olduğunu kontrol eder
+        /// Checks if URL is safe
         /// </summary>
         public static bool IsValidUrl(string url)
         {
             if (string.IsNullOrWhiteSpace(url))
                 return false;
 
-            // URI oluşturulmaya çalışılır
+            // Try to create URI
             if (!Uri.TryCreate(url, UriKind.Absolute, out Uri uriResult))
                 return false;
 
-            // Sadece HTTP ve HTTPS kabul et
+            // Accept only HTTP and HTTPS
             return uriResult.Scheme == Uri.UriSchemeHttp || 
                    uriResult.Scheme == Uri.UriSchemeHttps;
         }
 
         /// <summary>
-        /// String uzunluğunu kontrol eder
+        /// Checks string length
         /// </summary>
         public static bool IsValidLength(string input, int minLength, int maxLength)
         {
@@ -180,7 +180,7 @@ namespace TicketX
         }
 
         /// <summary>
-        /// Parola güçlülüğünü kontrol eder
+        /// Checks password strength
         /// </summary>
         public static bool IsStrongPassword(string password, out string message)
         {
@@ -188,19 +188,19 @@ namespace TicketX
 
             if (string.IsNullOrWhiteSpace(password))
             {
-                message = "Parola boş olamaz";
+                message = "Password cannot be empty";
                 return false;
             }
 
             if (password.Length < 8)
             {
-                message = "Parola en az 8 karakter olmalıdır";
+                message = "Password must be at least 8 characters";
                 return false;
             }
 
             if (password.Length > 128)
             {
-                message = "Parola çok uzun (maksimum 128 karakter)";
+                message = "Password is too long (maximum 128 characters)";
                 return false;
             }
 
@@ -217,7 +217,7 @@ namespace TicketX
 
             if (score < 3)
             {
-                message = "Parola en az 3 farklı karakter tipinden oluşmalıdır (büyük harf, küçük harf, rakam, özel karakter)";
+                message = "Password must contain at least 3 different character types (uppercase, lowercase, number, special character)";
                 return false;
             }
 
@@ -225,29 +225,29 @@ namespace TicketX
         }
 
         /// <summary>
-        /// TCNO (T.C. Kimlik No) doğrular
+        /// Validates Turkish ID Number (T.C. Kimlik No)
         /// </summary>
         public static bool IsValidTCKN(string tckn)
         {
             if (string.IsNullOrWhiteSpace(tckn) || tckn.Length != 11)
                 return false;
 
-            // Sadece rakam olmalı
+            // Must be only digits
             if (!Regex.IsMatch(tckn, @"^\d{11}$"))
                 return false;
 
-            // İlk hane 0 olamaz
+            // First digit cannot be 0
             if (tckn[0] == '0')
                 return false;
 
-            // Algoritma kontrolü
+            // Algorithm check
             int[] digits = new int[11];
             for (int i = 0; i < 11; i++)
             {
                 digits[i] = int.Parse(tckn[i].ToString());
             }
 
-            // 10. hane kontrolü
+            // 10th digit check
             int sum1 = (digits[0] + digits[2] + digits[4] + digits[6] + digits[8]) * 7;
             int sum2 = digits[1] + digits[3] + digits[5] + digits[7];
             int digit10 = (sum1 - sum2) % 10;
@@ -255,7 +255,7 @@ namespace TicketX
             if (digit10 != digits[9])
                 return false;
 
-            // 11. hane kontrolü
+            // 11th digit check
             int sum3 = 0;
             for (int i = 0; i < 10; i++)
             {
@@ -267,21 +267,21 @@ namespace TicketX
         }
 
         /// <summary>
-        /// Kart numarası formatını kontrol eder (Luhn algoritması)
+        /// Validates credit card number format (Luhn algorithm)
         /// </summary>
         public static bool IsValidCreditCard(string cardNumber)
         {
             if (string.IsNullOrWhiteSpace(cardNumber))
                 return false;
 
-            // Sadece rakamları al
+            // Extract only digits
             string digitsOnly = Regex.Replace(cardNumber, @"[^\d]", "");
 
-            // 13-19 hane arası olmalı
+            // Must be between 13-19 digits
             if (digitsOnly.Length < 13 || digitsOnly.Length > 19)
                 return false;
 
-            // Luhn algoritması
+            // Luhn algorithm
             int sum = 0;
             bool alternate = false;
 
@@ -304,4 +304,3 @@ namespace TicketX
         }
     }
 }
-

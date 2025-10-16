@@ -1,41 +1,41 @@
 using System;
 using System.Configuration;
 
-namespace TicketX
+namespace OpenTicket
 {
     /// <summary>
-    /// Güvenli konfigürasyon yönetimi için helper sınıfı
-    /// Hassas bilgiler Web.config appSettings veya ortam değişkenlerinden alınır
+    /// Helper class for secure configuration management
+    /// Sensitive information is retrieved from Web.config appSettings or environment variables
     /// </summary>
     public static class ConfigHelper
     {
         /// <summary>
-        /// SQL Server bağlantı string'ini döndürür
+        /// Returns SQL Server connection string
         /// </summary>
         public static string GetConnectionString()
         {
-            // Önce ortam değişkeninden kontrol et (production için)
-            var connString = Environment.GetEnvironmentVariable("TICKETX_CONNECTION_STRING");
+            // First check environment variable (for production)
+            var connString = Environment.GetEnvironmentVariable("OPENTICKET_CONNECTION_STRING");
             
             if (string.IsNullOrEmpty(connString))
             {
-                // Ortam değişkeni yoksa Web.config'den al
-                connString = ConfigurationManager.ConnectionStrings["TicketXDb"]?.ConnectionString;
+                // If no environment variable, get from Web.config
+                connString = ConfigurationManager.ConnectionStrings["OpenTicketDb"]?.ConnectionString;
             }
 
             if (string.IsNullOrEmpty(connString))
             {
                 throw new InvalidOperationException(
-                    "Veritabanı bağlantı bilgisi bulunamadı. " +
-                    "Lütfen Web.config dosyasında 'TicketXDb' connection string'ini " +
-                    "veya 'TICKETX_CONNECTION_STRING' ortam değişkenini tanımlayın.");
+                    "Database connection information not found. " +
+                    "Please define 'OpenTicketDb' connection string in Web.config " +
+                    "or 'OPENTICKET_CONNECTION_STRING' environment variable.");
             }
 
             return connString;
         }
 
         /// <summary>
-        /// SMTP ayarlarını döndürür
+        /// Returns SMTP settings
         /// </summary>
         public static SmtpSettings GetSmtpSettings()
         {
@@ -46,30 +46,30 @@ namespace TicketX
                 Username = GetAppSetting("SmtpUsername"),
                 Password = GetAppSetting("SmtpPassword"),
                 SenderEmail = GetAppSetting("SmtpSenderEmail"),
-                SenderName = GetAppSetting("SmtpSenderName", "TicketX"),
+                SenderName = GetAppSetting("SmtpSenderName", "OpenTicket"),
                 EnableSsl = bool.Parse(GetAppSetting("SmtpEnableSsl", "true"))
             };
         }
 
         /// <summary>
-        /// AppSettings değerini okur, önce ortam değişkenlerini kontrol eder
+        /// Reads AppSettings value, checks environment variables first
         /// </summary>
         private static string GetAppSetting(string key, string defaultValue = null)
         {
-            // Önce ortam değişkeninden kontrol et
-            var value = Environment.GetEnvironmentVariable($"TICKETX_{key.ToUpper()}");
+            // First check environment variable
+            var value = Environment.GetEnvironmentVariable($"OPENTICKET_{key.ToUpper()}");
             
             if (string.IsNullOrEmpty(value))
             {
-                // Ortam değişkeni yoksa Web.config'den al
+                // If no environment variable, get from Web.config
                 value = ConfigurationManager.AppSettings[key];
             }
 
             if (string.IsNullOrEmpty(value) && defaultValue == null)
             {
                 throw new InvalidOperationException(
-                    $"Konfigürasyon ayarı bulunamadı: {key}. " +
-                    $"Lütfen Web.config appSettings veya ortam değişkeni olarak tanımlayın.");
+                    $"Configuration setting not found: {key}. " +
+                    $"Please define in Web.config appSettings or as environment variable.");
             }
 
             return value ?? defaultValue;

@@ -15,140 +15,140 @@ using System.Web.Services;
 using System.Web.UI.WebControls;
 using QRCoder;
 
-namespace TicketX
+namespace OpenTicket
 {
     public class vt
     {
-        private SqlConnection baglanti;
+        private SqlConnection connection;
 
         /// <summary>
-        /// Güvenli veritabanı bağlantısı açar
-        /// Bağlantı bilgileri ConfigHelper üzerinden alınır
+        /// Opens secure database connection
+        /// Connection information is retrieved from ConfigHelper
         /// </summary>
-        public void baglantiac()
+        public void OpenConnection()
         {
-            if (baglanti != null)
+            if (connection != null)
             {
-                baglanti.Dispose();
+                connection.Dispose();
             }
 
-            baglanti = new SqlConnection(ConfigHelper.GetConnectionString());
-            SqlConnection.ClearPool(baglanti);
+            connection = new SqlConnection(ConfigHelper.GetConnectionString());
+            SqlConnection.ClearPool(connection);
             SqlConnection.ClearAllPools();
-            baglanti.Open();
+            connection.Open();
         }
 
         /// <summary>
-        /// Bağlantıyı kapatır ve kaynakları serbest bırakır
+        /// Closes connection and releases resources
         /// </summary>
-        public void BaglantiKapat()
+        public void CloseConnection()
         {
-            if (baglanti != null && baglanti.State == ConnectionState.Open)
+            if (connection != null && connection.State == ConnectionState.Open)
             {
-                baglanti.Close();
-                baglanti.Dispose();
+                connection.Close();
+                connection.Dispose();
             }
         }
 
         /// <summary>
-        /// Parametreli INSERT, UPDATE, DELETE işlemleri için
-        /// SQL Injection korumalı
+        /// For parameterized INSERT, UPDATE, DELETE operations
+        /// Protected against SQL Injection
         /// </summary>
-        public int InsertUpdateDelete(SqlCommand komut)
+        public int InsertUpdateDelete(SqlCommand command)
         {
             try
             {
-                baglantiac();
-                komut.Connection = baglanti;
-                int etkilenenSatir = komut.ExecuteNonQuery();
-                return etkilenenSatir;
+                OpenConnection();
+                command.Connection = connection;
+                int affectedRows = command.ExecuteNonQuery();
+                return affectedRows;
             }
             finally
             {
-                BaglantiKapat();
+                CloseConnection();
             }
         }
 
         /// <summary>
-        /// Parametreli SELECT işlemleri için
-        /// SQL Injection korumalı
+        /// For parameterized SELECT operations
+        /// Protected against SQL Injection
         /// </summary>
-        public SqlDataReader Select(SqlCommand komut)
+        public SqlDataReader Select(SqlCommand command)
         {
-            baglantiac();
-            komut.Connection = baglanti;
-            // NOT: DataReader kullanılırken bağlantı açık kalmalı
-            // Kullanıcı Read() işleminden sonra BaglantiKapat() çağırmalı
-            var okuyucu = komut.ExecuteReader(CommandBehavior.CloseConnection);
-            return okuyucu;
+            OpenConnection();
+            command.Connection = connection;
+            // NOTE: Connection must remain open when using DataReader
+            // User must call CloseConnection() after Read() operation
+            var reader = command.ExecuteReader(CommandBehavior.CloseConnection);
+            return reader;
         }
 
         /// <summary>
-        /// Parametreli stored procedure çağrısı için
-        /// SQL Injection korumalı
+        /// For parameterized stored procedure calls
+        /// Protected against SQL Injection
         /// </summary>
-        public SqlDataReader Sp(SqlCommand komut)
+        public SqlDataReader Sp(SqlCommand command)
         {
-            baglantiac();
-            komut.Connection = baglanti;
-            komut.CommandType = CommandType.StoredProcedure;
-            var okuyucu = komut.ExecuteReader(CommandBehavior.CloseConnection);
-            return okuyucu;
+            OpenConnection();
+            command.Connection = connection;
+            command.CommandType = CommandType.StoredProcedure;
+            var reader = command.ExecuteReader(CommandBehavior.CloseConnection);
+            return reader;
         }
 
         /// <summary>
-        /// Scalar değer döndüren sorgular için (COUNT, MAX, vb.)
+        /// For queries returning scalar values (COUNT, MAX, etc.)
         /// </summary>
-        public object ExecuteScalar(SqlCommand komut)
+        public object ExecuteScalar(SqlCommand command)
         {
             try
             {
-                baglantiac();
-                komut.Connection = baglanti;
-                return komut.ExecuteScalar();
+                OpenConnection();
+                command.Connection = connection;
+                return command.ExecuteScalar();
             }
             finally
             {
-                BaglantiKapat();
+                CloseConnection();
             }
         }
 
         /// <summary>
-        /// DropDownList'i güvenli şekilde doldurur
-        /// SQL Injection korumalı
+        /// Fills DropDownList securely
+        /// Protected against SQL Injection
         /// </summary>
-        public void DropdownVeriDoldur(DropDownList dl, SqlCommand komut, string textField, string valueField)
+        public void FillDropdown(DropDownList ddl, SqlCommand command, string textField, string valueField)
         {
-            var okuyucu = Select(komut);
+            var reader = Select(command);
             try
             {
-                dl.Items.Clear();
-                while (okuyucu.Read())
+                ddl.Items.Clear();
+                while (reader.Read())
                 {
                     ListItem item = new ListItem(
-                        HttpUtility.HtmlEncode(okuyucu[textField]?.ToString()),
-                        HttpUtility.HtmlEncode(okuyucu[valueField]?.ToString())
+                        HttpUtility.HtmlEncode(reader[textField]?.ToString()),
+                        HttpUtility.HtmlEncode(reader[valueField]?.ToString())
                     );
-                    dl.Items.Add(item);
+                    ddl.Items.Add(item);
                 }
             }
             finally
             {
-                if (okuyucu != null && !okuyucu.IsClosed)
+                if (reader != null && !reader.IsClosed)
                 {
-                    okuyucu.Close();
+                    reader.Close();
                 }
-                BaglantiKapat();
+                CloseConnection();
             }
         }
 
         /// <summary>
-        /// QR kod oluşturur
+        /// Generates QR code
         /// </summary>
-        public void QrCodeOlustur(System.Web.UI.WebControls.Image image, string code)
+        public void GenerateQRCode(System.Web.UI.WebControls.Image image, string code)
         {
             if (string.IsNullOrWhiteSpace(code))
-                throw new ArgumentException("QR kod verisi boş olamaz", nameof(code));
+                throw new ArgumentException("QR code data cannot be empty", nameof(code));
 
             QRCodeGenerator qrGenerator = new QRCodeGenerator();
             QRCodeData qrCodeData = qrGenerator.CreateQrCode(code, QRCodeGenerator.ECCLevel.Q);
@@ -166,9 +166,9 @@ namespace TicketX
         }
 
         /// <summary>
-        /// DEPRECATED: Güvenli değil! PasswordHasher.HashPassword kullanın
+        /// DEPRECATED: Not secure! Use PasswordHasher.HashPassword
         /// </summary>
-        [Obsolete("SHA1 artık güvenli değil. Lütfen PasswordHasher.HashPassword kullanın.")]
+        [Obsolete("SHA1 is no longer secure. Please use PasswordHasher.HashPassword.")]
         public string Crypt(string text)
         {
             var bytes = new UnicodeEncoding().GetBytes(text);
@@ -183,20 +183,20 @@ namespace TicketX
         }
 
         /// <summary>
-        /// Sunucunun IP adresini alır
+        /// Gets server IP address
         /// </summary>
-        public static string GetIp()
+        public static string GetServerIp()
         {
             var host = Dns.GetHostEntry(Dns.GetHostName());
             foreach (var ip in host.AddressList)
                 if (ip.AddressFamily == AddressFamily.InterNetwork)
                     return ip.ToString();
-            throw new Exception("IPv4 ağ adaptörü bulunamadı!");
+            throw new Exception("No IPv4 network adapter found!");
         }
 
         /// <summary>
-        /// İstemcinin IP adresini güvenli şekilde alır
-        /// Proxy arkasındaki gerçek IP'yi de kontrol eder
+        /// Gets client IP address securely
+        /// Also checks real IP behind proxy
         /// </summary>
         public static string GetClientIPAddress()
         {
@@ -211,7 +211,7 @@ namespace TicketX
                 string[] addresses = ipAddress.Split(',');
                 if (addresses.Length != 0)
                 {
-                    // İlk IP genelde gerçek istemci IP'sidir
+                    // First IP is usually the real client IP
                     return addresses[0].Trim();
                 }
             }
@@ -220,32 +220,32 @@ namespace TicketX
         }
 
         /// <summary>
-        /// Session kontrolü yapar
+        /// Checks session validity
         /// </summary>
-        public bool SessionKontrol(int yetkiSeviyesi)
+        public bool ValidateSession(int requiredPermissionLevel)
         {
             var context = HttpContext.Current;
             if (context?.Session == null)
                 return false;
 
-            bool firmaIdVar = context.Session["firmaid"] != null;
-            bool yetkiVar = context.Session["yetki"] != null;
-            bool usernameVar = context.Session["username"] != null;
+            bool hasCompanyId = context.Session["firmaid"] != null;
+            bool hasPermission = context.Session["yetki"] != null;
+            bool hasUsername = context.Session["username"] != null;
 
-            if (!firmaIdVar || !yetkiVar || !usernameVar)
+            if (!hasCompanyId || !hasPermission || !hasUsername)
                 return false;
 
-            // Yetki seviyesi kontrolü
-            if (yetkiSeviyesi != Convert.ToInt32(context.Session["yetki"]))
+            // Permission level check
+            if (requiredPermissionLevel != Convert.ToInt32(context.Session["yetki"]))
                 return false;
 
             return true;
         }
 
         /// <summary>
-        /// Rastgele güvenli parola oluşturur
+        /// Generates random secure password
         /// </summary>
-        public string RandomPassword(int length)
+        public string GenerateRandomPassword(int length)
         {
             const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*";
             var random = new char[length];
@@ -266,78 +266,78 @@ namespace TicketX
         }
 
         /// <summary>
-        /// Güvenli email gönderimi
-        /// SMTP bilgileri ConfigHelper'dan alınır
+        /// Sends email securely
+        /// SMTP information is retrieved from ConfigHelper
         /// </summary>
-        public void SendMail(string to, string subject, string htmlBody)
+        public void SendEmail(string to, string subject, string htmlBody)
         {
             if (string.IsNullOrWhiteSpace(to))
-                throw new ArgumentException("Email adresi boş olamaz", nameof(to));
+                throw new ArgumentException("Email address cannot be empty", nameof(to));
 
             if (string.IsNullOrWhiteSpace(subject))
-                throw new ArgumentException("Email konusu boş olamaz", nameof(subject));
+                throw new ArgumentException("Email subject cannot be empty", nameof(subject));
 
             var smtpSettings = ConfigHelper.GetSmtpSettings();
 
-            using (var mesaj = new MailMessage())
+            using (var message = new MailMessage())
             {
-                mesaj.From = new MailAddress(smtpSettings.SenderEmail, smtpSettings.SenderName);
-                mesaj.To.Add(to);
-                mesaj.Subject = subject;
-                mesaj.Body = htmlBody;
-                mesaj.IsBodyHtml = true;
-                mesaj.Priority = MailPriority.High;
+                message.From = new MailAddress(smtpSettings.SenderEmail, smtpSettings.SenderName);
+                message.To.Add(to);
+                message.Subject = subject;
+                message.Body = htmlBody;
+                message.IsBodyHtml = true;
+                message.Priority = MailPriority.High;
 
                 using (var client = new SmtpClient(smtpSettings.Host, smtpSettings.Port))
                 {
                     client.Credentials = new NetworkCredential(smtpSettings.Username, smtpSettings.Password);
                     client.EnableSsl = smtpSettings.EnableSsl;
-                    client.Send(mesaj);
+                    client.Send(message);
                 }
             }
         }
 
         /// <summary>
-        /// COUNT sorgusu sonucunu döndürür
-        /// SQL Injection korumalı
+        /// Returns COUNT query result
+        /// Protected against SQL Injection
         /// </summary>
         [WebMethod(EnableSession = true)]
-        public string CountReturn(SqlCommand komut)
+        public string GetCount(SqlCommand command)
         {
-            var sonuc = ExecuteScalar(komut);
-            return sonuc?.ToString() ?? "0";
+            var result = ExecuteScalar(command);
+            return result?.ToString() ?? "0";
         }
 
         /// <summary>
-        /// Giriş denemelerini loglar
-        /// SQL Injection korumalı, hassas bilgileri loglamaz
+        /// Logs login attempts
+        /// Protected against SQL Injection, does not log sensitive information
         /// </summary>
         [WebMethod(EnableSession = true)]
-        public void GirisLoglama(string mail, bool basarili)
+        public void LogLoginAttempt(string email, bool successful)
         {
             try
             {
                 var cmd = new SqlCommand();
                 
-                if (!basarili)
+                if (!successful)
                 {
-                    // Başarısız girişte sadece email adresini logla (parola asla loglanmaz!)
+                    // For failed login, only log email address (never log password!)
                     cmd.CommandText = @"INSERT INTO loginlogs (lastlogin, ipadres, durum) 
-                                       VALUES (GETDATE(), @ipadres, @durum)";
-                    cmd.Parameters.AddWithValue("@ipadres", GetClientIPAddress());
-                    cmd.Parameters.AddWithValue("@durum", "Başarısız - Email: " + mail);
+                                       VALUES (GETDATE(), @ipaddress, @status)";
+                    cmd.Parameters.AddWithValue("@ipaddress", GetClientIPAddress());
+                    cmd.Parameters.AddWithValue("@status", "Failed - Email: " + email);
                 }
                 else
                 {
-                    // Başarılı girişte kullanıcı ID'sini de kaydet
-                    var kullaniciId = HttpContext.Current.Session["kullaniciid"];
-                    if (kullaniciId != null)
+                    // For successful login, also save user ID
+                    var userId = HttpContext.Current.Session["kullaniciid"];
+                    if (userId != null)
                     {
                         cmd.CommandText = @"INSERT INTO loginlogs (kid, lastlogin, ipadres, durum) 
-                                           VALUES (@kid, GETDATE(), @ipadres, @durum)";
-                        cmd.Parameters.AddWithValue("@kid", kullaniciId);
-                        cmd.Parameters.AddWithValue("@ipadres", GetClientIPAddress());
-                        cmd.Parameters.AddWithValue("@durum", "Başarılı");
+                                           VALUES (@userid, GETDATE(), @ipaddress, @status)";
+                        cmd.Parameters.AddWithValue("@userid", userId);
+                        cmd.Parameters.AddWithValue("@ipaddress", GetClientIPAddress());
+                        cmd.Parameters.AddWithValue("@status", "Successful");
                     }
                 }
 
@@ -345,77 +345,77 @@ namespace TicketX
             }
             catch (Exception ex)
             {
-                // Log hatası uygulamayı çökertmemeli
-                System.Diagnostics.Debug.WriteLine($"Giriş loglama hatası: {ex.Message}");
+                // Logging errors should not crash the application
+                System.Diagnostics.Debug.WriteLine($"Login logging error: {ex.Message}");
             }
         }
 
         /// <summary>
-        /// Genel işlem loglaması
-        /// SQL Injection korumalı, PII masking uygulanmalı
+        /// General operation logging
+        /// Protected against SQL Injection, PII masking should be applied
         /// </summary>
         [WebMethod(EnableSession = true)]
-        public void IslemLoglama(string islemAciklamasi)
+        public void LogOperation(string operationDescription)
         {
             try
             {
-                if (string.IsNullOrWhiteSpace(islemAciklamasi))
+                if (string.IsNullOrWhiteSpace(operationDescription))
                     return;
 
-                // İşlem açıklamasından hassas bilgileri temizle
-                islemAciklamasi = MaskSensitiveData(islemAciklamasi);
+                // Clean sensitive data from operation description
+                operationDescription = MaskSensitiveData(operationDescription);
 
                 var cmd = new SqlCommand();
-                var kullaniciId = HttpContext.Current?.Session?["kullaniciid"];
+                var userId = HttpContext.Current?.Session?["kullaniciid"];
 
-                if (kullaniciId != null)
+                if (userId != null)
                 {
                     cmd.CommandText = @"INSERT INTO loggenel (zaman, ipadresi, durum, pid) 
-                                       VALUES (GETDATE(), @ipadres, @durum, @pid)";
-                    cmd.Parameters.AddWithValue("@ipadres", GetClientIPAddress());
-                    cmd.Parameters.AddWithValue("@durum", islemAciklamasi);
-                    cmd.Parameters.AddWithValue("@pid", kullaniciId);
+                                       VALUES (GETDATE(), @ipaddress, @status, @userid)";
+                    cmd.Parameters.AddWithValue("@ipaddress", GetClientIPAddress());
+                    cmd.Parameters.AddWithValue("@status", operationDescription);
+                    cmd.Parameters.AddWithValue("@userid", userId);
                 }
                 else
                 {
                     cmd.CommandText = @"INSERT INTO loggenel (zaman, ipadresi, durum) 
-                                       VALUES (GETDATE(), @ipadres, @durum)";
-                    cmd.Parameters.AddWithValue("@ipadres", GetClientIPAddress());
-                    cmd.Parameters.AddWithValue("@durum", islemAciklamasi);
+                                       VALUES (GETDATE(), @ipaddress, @status)";
+                    cmd.Parameters.AddWithValue("@ipaddress", GetClientIPAddress());
+                    cmd.Parameters.AddWithValue("@status", operationDescription);
                 }
 
                 InsertUpdateDelete(cmd);
             }
             catch (Exception ex)
             {
-                // Log hatası uygulamayı çökertmemeli
-                System.Diagnostics.Debug.WriteLine($"İşlem loglama hatası: {ex.Message}");
+                // Logging errors should not crash the application
+                System.Diagnostics.Debug.WriteLine($"Operation logging error: {ex.Message}");
             }
         }
 
         /// <summary>
-        /// Log mesajlarından hassas bilgileri maskeler (PII masking)
+        /// Masks sensitive information in log messages (PII masking)
         /// </summary>
         private string MaskSensitiveData(string message)
         {
             if (string.IsNullOrWhiteSpace(message))
                 return message;
 
-            // Email maskeleme: user@example.com -> u***r@example.com
+            // Email masking: user@example.com -> u***r@example.com
             message = System.Text.RegularExpressions.Regex.Replace(
                 message,
                 @"\b([a-zA-Z0-9])([a-zA-Z0-9.-]+)([a-zA-Z0-9])@([a-zA-Z0-9.-]+\.[a-zA-Z]{2,})\b",
                 "$1***$3@$4"
             );
 
-            // Telefon maskeleme: 5551234567 -> 555***4567
+            // Phone masking: 5551234567 -> 555***4567
             message = System.Text.RegularExpressions.Regex.Replace(
                 message,
                 @"\b(\d{3})(\d{4})(\d{4})\b",
                 "$1***$3"
             );
 
-            // Kredi kartı maskeleme: 1234567812345678 -> 1234********5678
+            // Credit card masking: 1234567812345678 -> 1234********5678
             message = System.Text.RegularExpressions.Regex.Replace(
                 message,
                 @"\b(\d{4})(\d{8})(\d{4})\b",
@@ -426,16 +426,16 @@ namespace TicketX
         }
 
         /// <summary>
-        /// DataTable döndüren güvenli sorgu
+        /// Returns DataTable from secure query
         /// </summary>
-        public DataTable GetDataTable(SqlCommand komut)
+        public DataTable GetDataTable(SqlCommand command)
         {
             try
             {
-                baglantiac();
-                komut.Connection = baglanti;
+                OpenConnection();
+                command.Connection = connection;
                 
-                using (var adapter = new SqlDataAdapter(komut))
+                using (var adapter = new SqlDataAdapter(command))
                 {
                     var dt = new DataTable();
                     adapter.Fill(dt);
@@ -444,7 +444,7 @@ namespace TicketX
             }
             finally
             {
-                BaglantiKapat();
+                CloseConnection();
             }
         }
     }

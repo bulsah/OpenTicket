@@ -2,42 +2,42 @@ using System;
 using System.Security.Cryptography;
 using System.Text;
 
-namespace TicketX
+namespace OpenTicket
 {
     /// <summary>
-    /// Güvenli parola hashleme için PBKDF2 kullanan sınıf
-    /// SHA1 yerine kullanılmalıdır
+    /// Secure password hashing class using PBKDF2
+    /// Should be used instead of SHA1
     /// </summary>
     public static class PasswordHasher
     {
-        // PBKDF2 iterasyon sayısı (OWASP önerisi: en az 100,000)
+        // PBKDF2 iteration count (OWASP recommendation: at least 100,000)
         private const int Iterations = 100000;
         
-        // Salt boyutu (byte cinsinden)
+        // Salt size (in bytes)
         private const int SaltSize = 32;
         
-        // Hash boyutu (byte cinsinden)
+        // Hash size (in bytes)
         private const int HashSize = 32;
 
         /// <summary>
-        /// Parolayı hashler ve salt ile birlikte döndürür
+        /// Hashes password and returns it with salt
         /// Format: {iterations}.{salt}.{hash}
         /// </summary>
-        /// <param name="password">Hashlenecek parola</param>
-        /// <returns>Hashlenmiş parola (iterations.salt.hash formatında)</returns>
+        /// <param name="password">Password to hash</param>
+        /// <returns>Hashed password (in iterations.salt.hash format)</returns>
         public static string HashPassword(string password)
         {
             if (string.IsNullOrWhiteSpace(password))
-                throw new ArgumentException("Parola boş olamaz", nameof(password));
+                throw new ArgumentException("Password cannot be empty", nameof(password));
 
-            // Rastgele salt oluştur
+            // Generate random salt
             byte[] salt = new byte[SaltSize];
             using (var rng = new RNGCryptoServiceProvider())
             {
                 rng.GetBytes(salt);
             }
 
-            // PBKDF2 ile hash oluştur
+            // Generate hash using PBKDF2
             byte[] hash = GenerateHash(password, salt, Iterations);
 
             // Format: {iterations}.{salt}.{hash}
@@ -45,11 +45,11 @@ namespace TicketX
         }
 
         /// <summary>
-        /// Parolayı doğrular
+        /// Verifies password
         /// </summary>
-        /// <param name="password">Kontrol edilecek parola</param>
-        /// <param name="hashedPassword">Hashlenmiş parola (HashPassword metodundan dönen format)</param>
-        /// <returns>Parola doğruysa true</returns>
+        /// <param name="password">Password to verify</param>
+        /// <param name="hashedPassword">Hashed password (format returned by HashPassword method)</param>
+        /// <returns>True if password is valid</returns>
         public static bool VerifyPassword(string password, string hashedPassword)
         {
             if (string.IsNullOrWhiteSpace(password))
@@ -60,7 +60,7 @@ namespace TicketX
 
             try
             {
-                // Hashlenmiş parolayı parçala
+                // Split hashed password
                 var parts = hashedPassword.Split('.');
                 if (parts.Length != 3)
                     return false;
@@ -69,10 +69,10 @@ namespace TicketX
                 byte[] salt = Convert.FromBase64String(parts[1]);
                 byte[] hash = Convert.FromBase64String(parts[2]);
 
-                // Girilen parolayı aynı salt ile hashle
+                // Hash entered password with same salt
                 byte[] testHash = GenerateHash(password, salt, iterations);
 
-                // Hashler eşleşiyor mu kontrol et (timing attack'a karşı sabit zamanlı karşılaştırma)
+                // Check if hashes match (constant-time comparison to prevent timing attacks)
                 return SlowEquals(hash, testHash);
             }
             catch
@@ -82,7 +82,7 @@ namespace TicketX
         }
 
         /// <summary>
-        /// PBKDF2 kullanarak hash oluşturur
+        /// Generates hash using PBKDF2
         /// </summary>
         private static byte[] GenerateHash(string password, byte[] salt, int iterations)
         {
@@ -93,7 +93,7 @@ namespace TicketX
         }
 
         /// <summary>
-        /// Timing attack'a karşı sabit zamanlı karşılaştırma
+        /// Constant-time comparison to prevent timing attacks
         /// </summary>
         private static bool SlowEquals(byte[] a, byte[] b)
         {
@@ -109,10 +109,10 @@ namespace TicketX
         }
 
         /// <summary>
-        /// Eski SHA1 hash'lerini yeni PBKDF2 formatına migrate etmek için
-        /// SHA1 hash'i doğrular (sadece migration için kullanılmalı)
+        /// For migrating old SHA1 hashes to new PBKDF2 format
+        /// Verifies SHA1 hash (should only be used for migration)
         /// </summary>
-        [Obsolete("Sadece eski parolaları migrate etmek için kullanın. Yeni sistemde PasswordHasher.HashPassword kullanın.")]
+        [Obsolete("Only use this to migrate old passwords. Use PasswordHasher.HashPassword in new system.")]
         public static bool VerifyLegacySHA1(string password, string sha1Hash)
         {
             if (string.IsNullOrWhiteSpace(password) || string.IsNullOrWhiteSpace(sha1Hash))

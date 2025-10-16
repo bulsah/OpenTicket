@@ -4,11 +4,11 @@ using System.Text;
 using System.Web;
 using System.Web.UI;
 
-namespace TicketX
+namespace OpenTicket
 {
     /// <summary>
-    /// CSRF (Cross-Site Request Forgery) saldırılarına karşı koruma sağlar
-    /// Form'lara anti-forgery token ekler ve doğrular
+    /// Provides protection against CSRF (Cross-Site Request Forgery) attacks
+    /// Adds and validates anti-forgery tokens for forms
     /// </summary>
     public static class AntiForgeryHelper
     {
@@ -16,28 +16,28 @@ namespace TicketX
         private const string TokenFormKey = "__RequestVerificationToken";
 
         /// <summary>
-        /// Anti-forgery token oluşturur ve session'a kaydeder
-        /// Form'larda hidden field olarak kullanılmalıdır
+        /// Generates anti-forgery token and saves it to session
+        /// Should be used as hidden field in forms
         /// </summary>
         /// <returns>Hidden input HTML string</returns>
         public static string GenerateToken()
         {
             var context = HttpContext.Current;
             if (context?.Session == null)
-                throw new InvalidOperationException("Session kullanılabilir değil");
+                throw new InvalidOperationException("Session is not available");
 
-            // Yeni token oluştur
+            // Generate new token
             string token = GenerateRandomToken();
             
-            // Session'a kaydet
+            // Save to session
             context.Session[TokenSessionKey] = token;
 
-            // Hidden field olarak döndür
+            // Return as hidden field
             return $"<input type=\"hidden\" name=\"{TokenFormKey}\" value=\"{HttpUtility.HtmlEncode(token)}\" />";
         }
 
         /// <summary>
-        /// Token'ı HtmlString olarak döndürür (ASP.NET için)
+        /// Returns token as HtmlString (for ASP.NET)
         /// </summary>
         public static IHtmlString GetTokenHtml()
         {
@@ -45,38 +45,38 @@ namespace TicketX
         }
 
         /// <summary>
-        /// Form'dan gelen token'ı doğrular
-        /// POST işlemlerinde mutlaka çağrılmalıdır
+        /// Validates token from form
+        /// Must be called in POST operations
         /// </summary>
-        /// <exception cref="InvalidOperationException">Token geçersizse</exception>
+        /// <exception cref="InvalidOperationException">If token is invalid</exception>
         public static void ValidateToken()
         {
             var context = HttpContext.Current;
             if (context?.Session == null)
-                throw new InvalidOperationException("Session kullanılabilir değil");
+                throw new InvalidOperationException("Session is not available");
 
-            // Session'daki token
+            // Token from session
             string sessionToken = context.Session[TokenSessionKey] as string;
             
-            // Form'dan gelen token
+            // Token from form
             string formToken = context.Request.Form[TokenFormKey];
 
             if (string.IsNullOrWhiteSpace(sessionToken))
-                throw new InvalidOperationException("Session token bulunamadı. Lütfen sayfayı yenileyin.");
+                throw new InvalidOperationException("Session token not found. Please refresh the page.");
 
             if (string.IsNullOrWhiteSpace(formToken))
-                throw new InvalidOperationException("Form token bulunamadı. Potansiyel CSRF saldırısı!");
+                throw new InvalidOperationException("Form token not found. Potential CSRF attack!");
 
-            // Token'ları karşılaştır (timing attack'a karşı güvenli)
+            // Compare tokens (secure against timing attacks)
             if (!SlowEquals(sessionToken, formToken))
-                throw new InvalidOperationException("Token doğrulaması başarısız! Potansiyel CSRF saldırısı!");
+                throw new InvalidOperationException("Token validation failed! Potential CSRF attack!");
 
-            // Token'ı kullanıldıktan sonra yenile (replay attack koruması)
+            // Refresh token after use (replay attack protection)
             context.Session.Remove(TokenSessionKey);
         }
 
         /// <summary>
-        /// Token doğrulamasını yapar, hata fırlatmak yerine bool döner
+        /// Validates token, returns bool instead of throwing error
         /// </summary>
         public static bool TryValidateToken()
         {
@@ -92,7 +92,7 @@ namespace TicketX
         }
 
         /// <summary>
-        /// Rastgele kriptografik token oluşturur
+        /// Generates random cryptographic token
         /// </summary>
         private static string GenerateRandomToken()
         {
@@ -105,7 +105,7 @@ namespace TicketX
         }
 
         /// <summary>
-        /// Timing attack'a karşı güvenli string karşılaştırması
+        /// Secure string comparison to prevent timing attacks
         /// </summary>
         private static bool SlowEquals(string a, string b)
         {
@@ -144,4 +144,3 @@ namespace TicketX
         }
     }
 }
-
