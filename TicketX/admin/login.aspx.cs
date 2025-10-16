@@ -60,7 +60,9 @@ namespace OpenTicket.admin
                     else
                     {
                         // Legacy SHA1 - verify and migrate
+#pragma warning disable CS0618 // Type or member is obsolete
                         if (PasswordHasher.VerifyLegacySHA1(sifre.Text, storedPasswordHash))
+#pragma warning restore CS0618
                         {
                             isValidPassword = true;
                             
