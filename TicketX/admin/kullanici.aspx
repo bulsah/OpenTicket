@@ -13,8 +13,8 @@
                 <label>Kullanıcı mail</label>
                 <asp:TextBox runat="server" ID="kullanicimail" CssClass="form-control"></asp:TextBox>
                 <asp:Button Text="Kaydet"  runat="server" CssClass="btn btn-info mt-1 float-right" OnClick="Unnamed1_Click"/>
-
-
+                
+                <div id="hata" runat="server" class="mt-2"></div>
             </div>
 
 
