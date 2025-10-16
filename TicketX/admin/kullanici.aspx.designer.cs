@@ -7,7 +7,7 @@
 // </otomatik üretildi>
 //------------------------------------------------------------------------------
 
-namespace TicketX.yonetici
+namespace OpenTicket.admin
 {
 
 

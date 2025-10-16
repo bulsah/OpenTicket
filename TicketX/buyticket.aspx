@@ -1,4 +1,4 @@
-﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="biletal.aspx.cs" Inherits="OpenTicket.buyticket" %>
+﻿<%@ Page Language="C#" AutoEventWireup="true" CodeBehind="buyticket.aspx.cs" Inherits="OpenTicket.buyticket" %>
 
 <!DOCTYPE html>
 

@@ -7,11 +7,11 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace TicketX
+namespace OpenTicket
 {
 
 
-    public partial class biletal
+    public partial class buyticket
     {
 
         /// <summary>

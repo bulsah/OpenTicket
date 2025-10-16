@@ -7,7 +7,7 @@
 // </auto-generated>
 //------------------------------------------------------------------------------
 
-namespace TicketX
+namespace OpenTicket
 {
 
 
