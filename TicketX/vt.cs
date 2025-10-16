@@ -326,9 +326,9 @@ namespace OpenTicket
                                        VALUES (GETDATE(), @ipaddress, @status)";
                     cmd.Parameters.AddWithValue("@ipaddress", GetClientIPAddress());
                     cmd.Parameters.AddWithValue("@status", "Failed - Email: " + email);
-                }
-                else
-                {
+            }
+            else
+            {
                     // For successful login, also save user ID
                     var userId = HttpContext.Current.Session["kullaniciid"];
                     if (userId != null)
@@ -375,9 +375,9 @@ namespace OpenTicket
                     cmd.Parameters.AddWithValue("@ipaddress", GetClientIPAddress());
                     cmd.Parameters.AddWithValue("@status", operationDescription);
                     cmd.Parameters.AddWithValue("@userid", userId);
-                }
-                else
-                {
+            }
+            else
+            {
                     cmd.CommandText = @"INSERT INTO loggenel (zaman, ipadresi, durum) 
                                        VALUES (GETDATE(), @ipaddress, @status)";
                     cmd.Parameters.AddWithValue("@ipaddress", GetClientIPAddress());
