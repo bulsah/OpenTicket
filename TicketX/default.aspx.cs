@@ -14,7 +14,7 @@ namespace OpenTicket
         {
             myVideo.Visible = false;
             slider.Visible = false;
-            eventDetails.Visible = false;
+            detayla.Visible = false;
             
             if (Request.QueryString.Count > 0)
             {
@@ -41,8 +41,8 @@ namespace OpenTicket
                     }
 
                     myVideo.Visible = true;
-                    eventDetails.Visible = true;
-                    eventDetails.InnerHtml = GetEventDetail(detailId);
+                    detayla.Visible = true;
+                    detayla.InnerHtml = GetEventDetail(detailId);
                 }
             }
             else
@@ -50,7 +50,7 @@ namespace OpenTicket
                 slider.Visible = true;
                 slider.InnerHtml = GetEvents();
                 myVideo.Visible = false;
-                eventDetails.Visible = false;
+                detayla.Visible = false;
             }
         }
   
