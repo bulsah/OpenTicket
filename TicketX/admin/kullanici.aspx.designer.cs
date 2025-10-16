@@ -42,6 +42,15 @@ namespace OpenTicket.admin
         protected global::System.Web.UI.WebControls.TextBox kullanicimail;
 
         /// <summary>
+        /// hata denetimi.
+        /// </summary>
+        /// <remarks>
+        /// Otomatik üretilmiş alan.
+        /// Değiştirmek için, alan bildirimini tasarımcı dosyasından arka plan kod dosyasına taşıyın.
+        /// </remarks>
+        protected global::System.Web.UI.HtmlControls.HtmlGenericControl hata;
+
+        /// <summary>
         /// table denetimi.
         /// </summary>
         /// <remarks>
